@@ -1,0 +1,13 @@
+{
+  "company": "Jar",
+  "run_id": "run-001",
+  "created_at": "2026-09-17T15:42:36.420299",
+  "updated_at": "2026-09-17T17:48:15.185183",
+  "previous_run_id": null,
+  "evidence_reused_from": null,
+  "tools_used": [
+    "WebSearch",
+    "WebFetch"
+  ],
+  "execution_notes": "Bugfix pass 2026-09-18: corrected years_since_founding to be measured as of the capital-raised date, not today (was understating capital_raised_per_year by ~4.6x). No new research performed in this pass."
+}

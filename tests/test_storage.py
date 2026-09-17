@@ -2,13 +2,14 @@
 carry-forward, and an end-to-end pass from saved sources through claim
 checks to a rendered memo.md."""
 
+import re
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
 import pytest
 
 from firstcheque import storage
-from firstcheque.render import render_memo_md
+from firstcheque.render import render_memo_html, render_memo_md
 from firstcheque import claims as claims_mod
 from firstcheque.schema import (
     Claim,
@@ -195,7 +196,10 @@ def test_end_to_end_saved_evidence_through_render(tmp_root):
     loaded_memo = storage.load_memo(run_dir)
     assert loaded_memo == memo
 
-    result = claims_mod.valuation_multiple(loaded_memo.numbers.valuation, loaded_memo.numbers.monthly_revenue_current)
+    from firstcheque.cli import _resolve_annual_revenue
+
+    annual_revenue = _resolve_annual_revenue(loaded_memo.numbers)
+    result = claims_mod.valuation_multiple(loaded_memo.numbers.valuation, annual_revenue)
     checks = {"valuation_multiple": result}
     storage.write_json(
         run_dir / "claim_checks.json", {k: v.model_dump(mode="json") for k, v in checks.items()}
@@ -209,3 +213,48 @@ def test_end_to_end_saved_evidence_through_render(tmp_root):
     assert "6.7x" in memo_md
     assert "AI-drafted from public sources" in memo_md
     assert "[^1]:" in memo_md and "[^2]:" in memo_md
+
+
+def test_html_render_is_self_contained_and_has_no_dangling_footnote_links():
+    """The HTML view must open with no server/network: no external
+    stylesheet/script tags, and every in-prose [^N] marker must resolve to
+    an anchor that actually exists in the rendered sources list."""
+    run_dir_memo = _minimal_memo_with_numbers()
+    sources = [
+        Source(
+            id=1,
+            title="Entrackr piece",
+            url="https://entrackr.example/testly",
+            accessed_date=date(2026, 7, 1),
+            passage="Testly reports monthly revenue of INR 25.01 lakh.",
+            evidence_type=EvidenceType.SEARCH_SNIPPET,
+        ),
+        Source(
+            id=2,
+            title="Inc42 piece",
+            url="https://inc42.example/testly",
+            accessed_date=date(2026, 7, 1),
+            passage="Testly is valued at INR 20 crore.",
+            evidence_type=EvidenceType.SEARCH_SNIPPET,
+        ),
+    ]
+    from firstcheque.cli import _resolve_annual_revenue
+
+    checks = {
+        "valuation_multiple": claims_mod.valuation_multiple(
+            run_dir_memo.numbers.valuation, _resolve_annual_revenue(run_dir_memo.numbers)
+        )
+    }
+
+    html_doc = render_memo_html(run_dir_memo, sources, checks)
+
+    assert html_doc.startswith("<!DOCTYPE html>")
+    assert "<script" not in html_doc
+    assert "http://" not in html_doc.split("<style>")[0]  # no external stylesheet before the inline one
+    assert 'rel="stylesheet"' not in html_doc
+    assert "Testly Technologies" in html_doc
+    assert 'id="src-1"' in html_doc and 'id="src-2"' in html_doc
+
+    referenced_ids = set(int(n) for n in re.findall(r'href="#src-(\d+)"', html_doc))
+    anchored_ids = set(int(n) for n in re.findall(r'id="src-(\d+)"', html_doc))
+    assert referenced_ids <= anchored_ids

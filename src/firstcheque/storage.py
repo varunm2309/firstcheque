@@ -167,6 +167,63 @@ def evidence_age_days(source: Source, as_of: Optional[date] = None) -> int:
 
 
 # ---------------------------------------------------------------------------
+# Stage event log: a real, append-only record of what actually ran, when.
+#
+# This is intentionally a flat JSONL file, not a database -- one line per
+# event, written with a single append, so a crash mid-run never corrupts
+# earlier entries. It is populated two ways: automatically, by the CLI
+# commands that do python-side work (new-run, merge-sources, compute-claims,
+# etc.), and explicitly, by Claude calling `cli.py log-event` for the steps
+# only Claude does (planning, research, extraction judgment, citation
+# support). A run created before this existed will simply have no events
+# for its earlier stages -- that is shown as "not recorded", never
+# backfilled or guessed at.
+# ---------------------------------------------------------------------------
+
+EVENTS_FILENAME = "events.jsonl"
+
+
+def append_event(
+    run_dir: Path,
+    stage: str,
+    executor: str,
+    status: str,
+    artifacts: Optional[list[str]] = None,
+    error: Optional[str] = None,
+    notes: Optional[str] = None,
+) -> dict:
+    event = {
+        "stage": stage,
+        "executor": executor,
+        "status": status,
+        "timestamp": datetime.now().isoformat(timespec="seconds"),
+        "artifacts": artifacts or [],
+        "error": error,
+        "notes": notes,
+    }
+    path = run_dir / EVENTS_FILENAME
+    with path.open("a", encoding="utf-8") as f:
+        f.write(json.dumps(event, ensure_ascii=False) + "\n")
+    return event
+
+
+def load_events(run_dir: Path) -> list[dict]:
+    path = run_dir / EVENTS_FILENAME
+    if not path.exists():
+        return []
+    events = []
+    for line in path.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if line:
+            events.append(json.loads(line))
+    return events
+
+
+def events_for_stage(run_dir: Path, stage: str) -> list[dict]:
+    return [e for e in load_events(run_dir) if e["stage"] == stage]
+
+
+# ---------------------------------------------------------------------------
 # Review carry-forward
 # ---------------------------------------------------------------------------
 

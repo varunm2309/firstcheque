@@ -1,0 +1,11 @@
+{"stage": "extract_draft", "executor": "python", "status": "ok", "timestamp": "2026-09-17T16:34:30", "artifacts": ["memo.json"], "error": null, "notes": null}
+{"stage": "compute_claims", "executor": "python", "status": "ok", "timestamp": "2026-09-17T16:34:31", "artifacts": ["claim_checks.json"], "error": null, "notes": "2/7 checks computed"}
+{"stage": "citation_check", "executor": "python", "status": "ok", "timestamp": "2026-09-17T16:34:31", "artifacts": [], "error": null, "notes": "citation_support_rate=83% (10/12); unverified_claims=0"}
+{"stage": "render_memo", "executor": "python", "status": "ok", "timestamp": "2026-09-17T16:34:31", "artifacts": ["memo.md", "memo.html"], "error": null, "notes": null}
+{"stage": "compare_previous_run", "executor": "python", "status": "ok", "timestamp": "2026-09-17T16:34:33", "artifacts": ["changes.md"], "error": null, "notes": "vs run-001"}
+{"stage": "extract_draft", "executor": "python", "status": "ok", "timestamp": "2026-09-17T17:47:22", "artifacts": ["memo.json"], "error": null, "notes": "Schema and citation-ID validation only; this timestamp is when memo.json was last checked, not when it was written or researched."}
+{"stage": "compute_claims", "executor": "python", "status": "ok", "timestamp": "2026-09-17T17:47:23", "artifacts": ["claim_checks.json"], "error": null, "notes": "2/7 checks computed"}
+{"stage": "compute_claims", "executor": "python", "status": "ok", "timestamp": "2026-09-17T17:47:52", "artifacts": ["claim_checks.json"], "error": null, "notes": "2/7 checks computed"}
+{"stage": "citation_check", "executor": "python", "status": "ok", "timestamp": "2026-09-17T17:48:02", "artifacts": [], "error": null, "notes": "citation_support_rate=83% (10/12); unverified_claims=0. Structural check + rate calculation only -- the supported/unsupported judgment on each claim was made by Claude when it wrote memo.json, not at this timestamp."}
+{"stage": "render_memo", "executor": "python", "status": "ok", "timestamp": "2026-09-17T17:48:03", "artifacts": ["memo.md", "memo.html"], "error": null, "notes": null}
+{"stage": "compare_previous_run", "executor": "python", "status": "ok", "timestamp": "2026-09-17T17:48:04", "artifacts": ["changes.md"], "error": null, "notes": "vs run-001"}

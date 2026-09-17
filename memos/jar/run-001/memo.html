@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jar -- FirstCheque memo</title>
+<style>
+  :root {
+    --paper: #faf8f4; --ink: #1f1c18; --muted: #6b6459; --line: #e4ddd0;
+    --accent: #2f5233; --meet: #1f7a3d; --track: #b8860b; --pass: #a33a3a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 2.5rem 1.25rem 4rem; background: var(--paper); color: var(--ink);
+    font-family: Georgia, 'Iowan Old Style', 'Palatino Linotype', serif;
+    line-height: 1.55; font-size: 17px;
+  }
+  .page { max-width: 800px; margin: 0 auto; }
+  h1 { font-size: 2rem; margin-bottom: 0.15em; }
+  h1 + .website { font-family: 'Courier New', monospace; font-size: 0.85rem; }
+  h1 + .website a { color: var(--accent); }
+  .oneliner { font-style: italic; color: var(--muted); margin: 0.6em 0 1.4em; font-size: 1.05rem; }
+  h2 {
+    font-family: -apple-system, Helvetica, Arial, sans-serif; font-size: 0.78rem;
+    letter-spacing: 0.09em; text-transform: uppercase; color: var(--muted);
+    border-bottom: 1px solid var(--line); padding-bottom: 0.35em; margin: 2em 0 0.8em;
+  }
+  .recommendation {
+    display: flex; align-items: center; gap: 0.75rem; margin: 1em 0 0.5em;
+  }
+  .rec-pill {
+    font-family: -apple-system, Helvetica, Arial, sans-serif; font-weight: 700;
+    font-size: 0.95rem; padding: 0.3em 0.9em; border-radius: 999px; color: #fff;
+  }
+  .rec-meet { background: var(--meet); }
+  .rec-track { background: var(--track); }
+  .rec-pass { background: var(--pass); }
+  .rationale { margin: 0.6em 0 0; }
+  .snapshot-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 0.9rem; margin-top: 0.5em;
+  }
+  .snap-item { background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 0.6em 0.8em; }
+  .snap-label {
+    font-family: -apple-system, Helvetica, Arial, sans-serif; font-size: 0.72rem;
+    text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 0.2em;
+  }
+  .snap-value { font-size: 0.95rem; }
+  p { margin: 0.7em 0; }
+  ol, ul { padding-left: 1.4em; }
+  .risks li { margin-bottom: 0.9em; }
+  .mitigant { color: var(--muted); font-size: 0.93rem; margin-top: 0.2em; }
+  .muted { color: var(--muted); font-style: italic; }
+  .card { background: #fff5e6; border: 1px solid #e8d5ab; border-radius: 8px; padding: 1em 1.2em; margin-top: 0.6em; }
+  .card h2 { border: none; margin-top: 0; }
+  .card.gaps { background: #fdf3f0; border-color: #eccbc2; }
+  .citation-line {
+    font-family: -apple-system, Helvetica, Arial, sans-serif; font-size: 0.9rem; color: var(--muted);
+    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 0.9em 0; margin: 1.6em 0;
+  }
+  .check { border: 1px solid var(--line); border-radius: 8px; padding: 0.8em 1em; margin-bottom: 0.7em; background: #fff; }
+  .check-head { display: flex; justify-content: space-between; align-items: center; font-family: 'Courier New', monospace; }
+  .badge {
+    font-family: -apple-system, Helvetica, Arial, sans-serif; font-size: 0.68rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.04em; padding: 0.15em 0.6em; border-radius: 999px;
+  }
+  .status-ok { background: #e3f2e6; color: var(--meet); }
+  .status-flag { background: #f5e9e3; color: #8a4b1f; }
+  .badge-evidence { background: #eee; color: #555; margin-left: 0.4em; }
+  .formula { font-family: 'Courier New', monospace; font-size: 0.85rem; color: var(--muted); margin: 0.3em 0 0.5em; }
+  .check-result { font-size: 1.15rem; font-weight: 700; margin-bottom: 0.3em; }
+  .check-error { color: #8a4b1f; }
+  .check-line { font-size: 0.9rem; margin: 0.25em 0; }
+  ol.sources { list-style: none; padding-left: 0; }
+  ol.sources li { padding: 0.6em 0; border-bottom: 1px solid var(--line); font-size: 0.92rem; }
+  .src-id { font-family: 'Courier New', monospace; font-weight: 700; margin-right: 0.4em; }
+  a { color: var(--accent); word-break: break-word; }
+  footer {
+    margin-top: 3em; padding-top: 1em; border-top: 1px solid var(--line);
+    font-size: 0.85rem; color: var(--muted); font-style: italic; text-align: center;
+  }
+  sup a { text-decoration: none; }
+  @media print { body { background: #fff; } .card { break-inside: avoid; } .check { break-inside: avoid; } }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Jar</h1>
+  <p class="website"><a href="https://www.myjar.app" target="_blank" rel="noopener noreferrer">https://www.myjar.app</a></p>
+  <p class="oneliner">A Bengaluru-based app that automatically rounds up UPI payments and invests the spare change into 24k digital gold.</p>
+
+  <div class="recommendation">
+    <span class="rec-pill rec-pass">Pass</span>
+  </div>
+  <p class="rationale">Jar has real scale and reached profitability in its last two reported quarters, but its core product is currently the subject of an active criminal FIR under the Banning of Unregulated Deposit Schemes Act, an RBI market-surveillance alert, and a public SEBI warning that digital/e-gold trading is unregulated. That combination is a legal and regulatory risk large enough to pass on until the investigation is resolved, regardless of the financial metrics.</p>
+
+  <h2>Snapshot</h2>
+  <div class="snapshot-grid"><div class="snap-item"><div class="snap-label">Founded</div><div class="snap-value">2021 (exact month reported inconsistently across sources; approximated as mid-2021 for the years-since-founding calculation below)</div></div><div class="snap-item"><div class="snap-label">HQ</div><div class="snap-value">Bengaluru, India</div></div><div class="snap-item"><div class="snap-label">Stage</div><div class="snap-value">Post-Series B; a larger round was reported in advanced talks in December 2025 but was not confirmed closed as of this research</div></div><div class="snap-item"><div class="snap-label">Total funding</div><div class="snap-value">USD 59.1 M disclosed across seed + Series A + Series B (per press reports; no single primary source gives a cumulative total directly -- see unresolved gaps). A further USD 100M+ round at a reported USD 500-550M term-sheet valuation was in talks as of December 2025, not confirmed closed.</div></div><div class="snap-item"><div class="snap-label">Last round</div><div class="snap-value">Series B: USD 22.6 M led by Tiger Global at over USD 300 M valuation (August 2022, per Entrackr&#x27;s restatement of the round)</div></div><div class="snap-item"><div class="snap-label">Investors</div><div class="snap-value">Tiger Global, Tribe Capital, Arkam Ventures, Rocketship.vc, Stonks, Force Ventures, WEH Ventures, Victor Jacobsson (angel, Klarna founder), Westbridge (in talks, unconfirmed)</div></div><div class="snap-item"><div class="snap-label">Founders</div><div class="snap-value">Nishchay Ag (CEO), Misbah Ashraf (Chief Product Officer)</div></div></div>
+
+  <h2>Business model</h2>
+  <p>Jar links to a user&#x27;s UPI payment history and automatically invests small round-up amounts, starting from INR 10, into 24k digital gold, aiming to build a low-friction savings habit for first-time investors.<sup><a href="#src-3">3</a></sup><sup><a href="#src-5">5</a></sup> Gold bought through the app is held via a vaulting partner (BRINKS, per the company&#x27;s own site) and insured through ICICI Lombard.<sup><a href="#src-5">5</a></sup> In FY25 the company reported it had vertically integrated its gold stack: rather than only routing user savings through external gold partners, Jar became a principal seller that owns and manages more of the gold value chain itself, which is also why its gross revenue figure jumped sharply that year (see traction section).<sup><a href="#src-1">1</a></sup></p>
+
+  <h2>Why now</h2>
+  <p>Jar reported reaching profitability in its last two consecutive quarters (January-March 2025 and April-June 2025) after years of scaling losses, and was reportedly in advanced talks as of December 2025 to raise over USD 100 million led by Westbridge at a term-sheet valuation of USD 500-550 million, roughly 1.7-1.8x its 2022 Series B valuation.<sup><a href="#src-1">1</a></sup><sup><a href="#src-2">2</a></sup> Set against that is a live regulatory overhang: an FIR filed in January under the Banning of Unregulated Deposit Schemes Act, an RBI market-surveillance alert in July 2025, and a SEBI public warning in November 2025 that digital/e-gold trading is currently unregulated.<sup><a href="#src-4">4</a></sup> Whether the pending round closes, and on what terms, may depend on how that investigation resolves.</p>
+
+  <h2>Market and competition</h2>
+  <p>Jar competes in India&#x27;s digital-gold savings space alongside providers such as SafeGold, MMTC-PAMP and Augmont, with gold-buying features also embedded in larger platforms like PhonePe and Groww.<sup><a href="#src-6">6</a></sup> This competitor picture was retrieved via a search-engine summary of generic comparison-blog content rather than a dedicated competitive analysis, and should be treated as low-confidence market colour rather than a verified competitive assessment.</p>
+
+  <h2>Traction and team</h2>
+  <p>Jar reported FY25 (year ended March 2025) operating revenue of INR 208 crore.<sup><a href="#src-1">1</a></sup> Following the vertical integration of its gold stack, the company also reported a much larger gross revenue figure of INR 2,450 crore for the same year, which reflects booking the full value of gold transactions now that Jar acts as principal rather than intermediary -- this is a change in what is being measured, not a like-for-like continuation of the INR 208 crore operating-revenue trend, and the two figures should not be added or averaged.<sup><a href="#src-1">1</a></sup> Net losses (excluding ESOP costs) were INR 35.23 crore in FY25, and the company says it was profitable in its last two reported quarters.<sup><a href="#src-1">1</a></sup> No FY24 comparison figure was found in the sources retrieved for this run, so FY25&#x27;s reported growth could not be independently checked against a prior-year base. The company reports over 35 million registered users across 12,000 pin codes (its own site claims 4+ crore, i.e. 40 million+, which is higher than the press-reported figure and not reconciled here).<sup><a href="#src-1">1</a></sup><sup><a href="#src-5">5</a></sup> Founders Nishchay Ag (CEO) and Misbah Ashraf (Chief Product Officer) started the company in 2021 with a USD 4.5 million seed round, reaching a USD 32 million Series A within about seven months at a valuation of over USD 200 million.<sup><a href="#src-3">3</a></sup></p>
+
+  <h2>Three risks and possible mitigants</h2>
+  <ol class="risks"><li><strong>Jar&#x27;s core product is under active legal and regulatory scrutiny: a criminal FIR under the Banning of Unregulated Deposit Schemes Act, an RBI market-surveillance alert, and a SEBI public warning that digital/e-gold trading is unregulated.</strong><div class="mitigant">Possible mitigant / question to press on: Ask for the current legal status of the CID investigation, any formal regulator correspondence, and outside counsel&#x27;s written assessment of business-model risk under the BUDS Act and possible future SEBI/RBI regulation.</div></li><li><strong>FY25&#x27;s headline revenue figures mix a comparable operating-revenue base (INR 208 Cr) with a much larger gross figure (INR 2,450 Cr) that reflects an accounting/business-model change (becoming principal seller), not organic growth, and no FY24 baseline was found to check the growth claims independently.</strong><div class="mitigant">Possible mitigant / question to press on: Request FY24 audited operating revenue on the same basis as FY25, plus a plain walkthrough (with cost of goods sold) of how the INR 2,450 Cr gross figure is constructed.</div></li><li><strong>The reported USD 100M+ Westbridge-led round at a USD 500-550M valuation was described as &#x27;in talks&#x27; with a term sheet, not closed, as of the December 2025 report; relying on that valuation before it closes could be premature.</strong><div class="mitigant">Possible mitigant / question to press on: Confirm deal status, final terms and closing date directly with the company before using any valuation above the confirmed August 2022 Series B figure.</div></li><li><strong>Public reporting mixes currencies (INR for revenue, USD for valuation and funding) and gives inconsistent user-count figures (35M per press vs 40M+ per the company&#x27;s own site), which blocks computing a like-for-like valuation multiple from public sources alone.</strong><div class="mitigant">Possible mitigant / question to press on: Request a single-currency data room (cap table, P&amp;L, and a defined user/customer metric) directly from the company rather than relying on press aggregation.</div></li></ol>
+
+  <h2>What would change this recommendation</h2>
+  <p>A move away from Pass would need the regulatory investigation to be resolved or clearly narrowed (charges dropped, or Jar demonstrating registration/compliance that satisfies RBI and SEBI&#x27;s stated concerns), plus a like-for-like FY24-to-FY25 operating revenue comparison from the company directly. Further regulatory escalation, or the reported financing round falling through because of the investigation, would confirm the Pass.</p>
+
+  <h2>Five questions for the founders</h2>
+  <ol><li>What is the current status of the Koramangala CID investigation and the BUDS Act FIR, and what specific steps has Jar taken in response to the RBI&#x27;s July 2025 surveillance alert and SEBI&#x27;s November 2025 public warning?</li><li>Can you share FY24 audited operating revenue on the same basis as the FY25 INR 208 crore figure, so growth can be assessed like-for-like?</li><li>Walk us through exactly how the FY25 INR 2,450 crore gross revenue figure is constructed under the new vertically-integrated model, including the associated cost of gold procured.</li><li>What is the actual current status of the reported Westbridge-led round -- is it closed, and if so at what valuation and on what terms?</li><li>If digital or e-gold trading is formally classified as a regulated activity, what licence(s) would Jar need, from which regulator, and what is the plan and timeline to obtain them?</li></ol>
+
+  <h2>RDI relevance</h2>
+  <p class="muted">No RDI theme assigned. Theme alignment, where present, is not confirmation of funding eligibility.</p>
+
+  <section class="card gaps"><h2>Unresolved gaps</h2><ul><li>Valuation (USD) and operating revenue (INR) are reported in different currencies by the sources found in this research pass; a valuation multiple was not computed because doing so would require an unsourced FX-rate and timing assumption. This is a live example of the currency-mismatch guardrail this project&#x27;s claim checks are built to enforce, not a gap that should be closed by guessing an exchange rate.</li><li>No FY24 (or earlier) operating revenue figure was found, so the multiple press reports of a &#x27;ninefold&#x27; FY25 revenue rise could not be independently corroborated from a directly-fetched source and were deliberately left out of the memo&#x27;s prose rather than repeated as fact.</li><li>The reported USD 100M+ Westbridge-led round (December 2025, term sheet at a USD 500-550M valuation) was not confirmed closed as of this research date.</li><li>Total capital raised (~USD 59.1M) is a sum of individually press-reported round sizes, not a figure disclosed directly by any single source; treat it as an approximation.</li><li>User-count figures differ across sources (35 million per Entrackr/press vs 4+ crore / 40 million+ per Jar&#x27;s own website) and were not reconciled.</li><li>Exact founding month is inconsistently reported across sources; 2021-07-01 was used as an approximation for the years-since-founding calculation.</li><li>ARPU (monthly revenue per paying customer) is not computed for Jar: no source discloses a &#x27;paying customer&#x27; count in the subscription/seat sense, and Jar&#x27;s revenue comes from per-transaction gold purchases rather than a subscription. Even if a customer count were found, ARPU may not be a economically meaningful metric for this business model -- this is a not-applicable case, not just a missing-data one.</li></ul></section>
+
+  <div class="citation-line">Citation support: 91% (10/11) of tracked factual claims are backed by a
+  saved, matching passage. This measures whether a cited source's saved text supports the claim -- it is
+  not independent fact verification.</div>
+
+  <h2>Appendix: numerical checks</h2>
+  <div class="check"><div class="check-head"><code>annualised_revenue_run_rate</code><span class="badge status-flag">missing_input</span></div><div class="formula">monthly_revenue * 12</div><div class="check-error">Cannot calculate annualised revenue run rate: no a sourced monthly revenue figure was found in the sources reviewed.</div></div><div class="check"><div class="check-head"><code>valuation_multiple</code><span class="badge status-flag">currency_mismatch</span></div><div class="formula">valuation / annual_revenue</div><div class="check-error">Cannot calculate valuation multiple: the inputs are reported in different currencies (INR and USD). No exchange rate was applied -- converting would mix a sourced figure with an assumed one.</div></div><div class="check"><div class="check-head"><code>arpu</code><span class="badge status-flag">missing_input</span></div><div class="formula">monthly_revenue / paying_customers</div><div class="check-error">Cannot calculate ARPU: none of these were found in the sources reviewed: a sourced monthly revenue figure; a sourced paying-customer count.</div></div><div class="check"><div class="check-head"><code>growth_multiple</code><span class="badge status-flag">missing_input</span></div><div class="formula">current_monthly_revenue / earlier_monthly_revenue</div><div class="check-error">Cannot calculate growth multiple: none of these were found in the sources reviewed: a sourced current-period revenue figure; a sourced earlier-period revenue figure.</div></div><div class="check"><div class="check-head"><code>capital_efficiency</code><span class="badge status-flag">currency_mismatch</span></div><div class="formula">annual_revenue / total_capital_raised</div><div class="check-error">Cannot calculate capital efficiency: the inputs are reported in different currencies (INR and USD). No exchange rate was applied -- converting would mix a sourced figure with an assumed one.</div></div><div class="check"><div class="check-head"><code>capital_raised_per_year</code><span class="badge status-ok">ok</span></div><div class="formula">total_capital_raised / years_since_founding</div><div class="check-result">USD 52.30M per year</div><div class="check-line"><strong>Inputs:</strong> total_capital_raised=59100000.0 USD (as_of=2022-08-18); years_since_founding=1.13 (as_of=2022-08-18)</div><div class="check-line"><strong>Assumption:</strong> years_since_founding should be measured as of the same date as total_capital_raised (not as of today), or this rate understates/overstates how fast the company actually raised money.</div><div class="check-line"><strong>Sources:</strong> <a href="#src-2">[2]</a> <a href="#src-3">[3]</a></div></div><div class="check"><div class="check-head"><code>implied_dilution</code><span class="badge status-flag">missing_input</span></div><div class="formula">round_size / post_money_valuation</div><div class="check-error">Cannot calculate implied dilution: none of these were found in the sources reviewed: a sourced round size; a sourced post-money valuation.</div></div>
+
+  <h2>Appendix: sources</h2>
+  <ol class="sources"><li id="src-1"><span class="src-id">[1]</span> <span class="badge badge-evidence">full_text</span><div><strong>Jar clocks Rs 208 Cr operating revenue in FY25, turns profitable in H2</strong><br>Entrackr &middot; 2025-09-19<br><a href="https://entrackr.com/news/jar-clocks-rs-208-cr-operating-revenue-in-fy25-turns-profitable-in-h2-10478229" target="_blank" rel="noopener noreferrer">https://entrackr.com/news/jar-clocks-rs-208-cr-operating-revenue-in-fy25-turns-profitable-in-h2-10478229</a> (accessed 2026-09-17)</div></li><li id="src-2"><span class="src-id">[2]</span> <span class="badge badge-evidence">full_text</span><div><strong>Jar in talks to raise $100 Mn led by Westbridge</strong><br>Entrackr &middot; 2025-12-19<br><a href="https://entrackr.com/exclusive/jar-in-talks-to-raise-100-mn-led-by-westbridge-10922441" target="_blank" rel="noopener noreferrer">https://entrackr.com/exclusive/jar-in-talks-to-raise-100-mn-led-by-westbridge-10922441</a> (accessed 2026-09-17)</div></li><li id="src-3"><span class="src-id">[3]</span> <span class="badge badge-evidence">full_text</span><div><strong>Tiger Global leads $32M Series A in savings and investments app Jar</strong><br>TechCrunch &middot; 2022-02-03<br><a href="https://techcrunch.com/2022/02/03/jar-india-fintech-tiger-global/" target="_blank" rel="noopener noreferrer">https://techcrunch.com/2022/02/03/jar-india-fintech-tiger-global/</a> (accessed 2026-09-17)</div></li><li id="src-4"><span class="src-id">[4]</span> <span class="badge badge-evidence">full_text</span><div><strong>Why digital gold savings startup Jar is under Karnataka police scanner</strong><br>Moneycontrol (via TradingView)<br><a href="https://www.tradingview.com/news/moneycontrol:28944ed67094b:0-why-digital-gold-savings-startup-jar-is-under-karnataka-police-scanner/" target="_blank" rel="noopener noreferrer">https://www.tradingview.com/news/moneycontrol:28944ed67094b:0-why-digital-gold-savings-startup-jar-is-under-karnataka-police-scanner/</a> (accessed 2026-09-17)</div></li><li id="src-5"><span class="src-id">[5]</span> <span class="badge badge-evidence">full_text</span><div><strong>About Jar - India&#x27;s No. 1 Gold Savings App</strong><br>Jar (company website)<br><a href="https://www.myjar.app/about" target="_blank" rel="noopener noreferrer">https://www.myjar.app/about</a> (accessed 2026-09-17)</div></li><li id="src-6"><span class="src-id">[6]</span> <span class="badge badge-evidence">search_snippet</span><div><strong>Digital gold app comparisons (SafeGold, MMTC-PAMP and others)</strong><br>OroPocket (industry blog)<br><a href="https://blog.oropocket.com/digital-gold-providers-in-india-compared-safegold-vs-mmtc-pamp-vs-augmont/" target="_blank" rel="noopener noreferrer">https://blog.oropocket.com/digital-gold-providers-in-india-compared-safegold-vs-mmtc-pamp-vs-augmont/</a> (accessed 2026-09-17)</div></li></ol>
+
+  <footer>AI-drafted from public sources, numbers re-checked in code. Verify before relying on it.</footer>
+</div>
+</body>
+</html>

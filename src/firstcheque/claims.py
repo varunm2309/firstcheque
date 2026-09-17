@@ -20,10 +20,11 @@ must never be read as, or feed into, an automated recommendation.
 
 from __future__ import annotations
 
+from datetime import date
 from decimal import ROUND_HALF_UP, Decimal
 from typing import Optional
 
-from .schema import ClaimCheckResult, ClaimCheckStatus, Currency, Fact, MetricKind
+from .schema import ClaimCheckResult, ClaimCheckStatus, Currency, Fact, MetricKind, Period
 
 # ---------------------------------------------------------------------------
 # Heuristic thresholds -- labelled constants, not hidden magic numbers.
@@ -33,11 +34,34 @@ VALUATION_MULTIPLE_LOW_HEURISTIC = Decimal("10")
 VALUATION_MULTIPLE_HIGH_HEURISTIC = Decimal("30")
 DILUTION_HEURISTIC_THRESHOLD = Decimal("0.25")  # 25%
 
+# Above this gap between two facts' as_of dates, a ratio combining them is
+# still computed (the dates are usually the best evidence gives us) but
+# gets an explicit staleness note, so a valuation from 2022 quietly divided
+# by revenue from 2025 doesn't read as a same-moment comparison.
+AS_OF_GAP_WARNING_DAYS = 180
+
 LAKH = Decimal("100000")
 CRORE = Decimal("10000000")
 USD_THOUSAND = Decimal("1000")
 USD_MILLION = Decimal("1000000")
 USD_BILLION = Decimal("1000000000")
+
+# Human-readable names for error messages, keyed by the `name` each
+# function below reports as. Falls back to name.replace("_", " ") if a
+# check isn't listed here.
+DISPLAY_NAMES = {
+    "annualised_revenue_run_rate": "annualised revenue run rate",
+    "valuation_multiple": "valuation multiple",
+    "arpu": "ARPU",
+    "growth_multiple": "growth multiple",
+    "capital_efficiency": "capital efficiency",
+    "capital_raised_per_year": "capital raised per year",
+    "implied_dilution": "implied dilution",
+}
+
+
+def _display(name: str) -> str:
+    return DISPLAY_NAMES.get(name, name.replace("_", " "))
 
 
 # ---------------------------------------------------------------------------
@@ -105,12 +129,32 @@ class _Missing(Exception):
         self.result = result
 
 
+_INPUT_DESCRIPTIONS = {
+    "monthly_revenue": "sourced monthly revenue figure",
+    "annual_revenue": "sourced annual revenue figure",
+    "valuation": "sourced valuation",
+    "paying_customers": "sourced paying-customer count",
+    "current": "sourced current-period revenue figure",
+    "earlier": "sourced earlier-period revenue figure",
+    "total_capital_raised": "sourced total-capital-raised figure",
+    "years_since_founding": "sourced founding date/age",
+    "round_size": "sourced round size",
+    "post_money_valuation": "sourced post-money valuation",
+}
+
+
 def _missing(name: str, formula: str, missing_labels: list[str]) -> ClaimCheckResult:
+    described = [_INPUT_DESCRIPTIONS.get(label, f"sourced value for {label!r}") for label in missing_labels]
+    if len(described) == 1:
+        missing_clause = f"no {described[0]} was found in the sources reviewed"
+    else:
+        with_articles = [f"{_article(d)} {d}" for d in described]
+        missing_clause = "none of these were found in the sources reviewed: " + "; ".join(with_articles)
     return ClaimCheckResult(
         name=name,
         formula=formula,
         status=ClaimCheckStatus.MISSING_INPUT,
-        error=f"missing input(s): {', '.join(missing_labels)}",
+        error=f"Cannot calculate {_display(name)}: {missing_clause}.",
     )
 
 
@@ -123,38 +167,118 @@ def _require_facts(name: str, formula: str, **facts: Optional[Fact]) -> None:
 def _require_same_currency(name: str, formula: str, *facts: Fact) -> None:
     currencies = {f.currency for f in facts}
     if len(currencies) > 1:
+        currency_list = " and ".join(sorted(c.value for c in currencies if c))
         raise _Missing(
             ClaimCheckResult(
                 name=name,
                 formula=formula,
                 status=ClaimCheckStatus.CURRENCY_MISMATCH,
-                error=f"cannot mix currencies: {sorted(c.value for c in currencies if c)}",
+                error=(
+                    f"Cannot calculate {_display(name)}: the inputs are reported in different "
+                    f"currencies ({currency_list}). No exchange rate was applied -- converting "
+                    "would mix a sourced figure with an assumed one."
+                ),
             )
         )
 
 
 def _require_metric_kind(name: str, formula: str, fact: Fact, *expected: MetricKind) -> None:
     if fact.metric_kind not in expected:
+        expected_list = " or ".join(e.value.replace("_", " ") for e in expected)
         raise _Missing(
             ClaimCheckResult(
                 name=name,
                 formula=formula,
                 status=ClaimCheckStatus.METRIC_MISMATCH,
                 error=(
-                    f"{fact.label!r} is measured as {fact.metric_kind.value!r}, "
-                    f"expected one of {[e.value for e in expected]}"
+                    f"Cannot calculate {_display(name)}: {fact.label!r} is recorded as "
+                    f"{fact.metric_kind.value.replace('_', ' ')}, but this calculation needs "
+                    f"{expected_list}. Using it anyway would compare two different things."
                 ),
             )
         )
 
 
-def _zero_denominator(name: str, formula: str, source_ids: list[int]) -> ClaimCheckResult:
+_PERIOD_DISPLAY = {
+    Period.MONTHLY: "monthly",
+    Period.ANNUAL: "annual",
+    Period.POINT_IN_TIME: "point-in-time",
+}
+
+
+def _article(word: str) -> str:
+    return "an" if word[:1].lower() in "aeiou" else "a"
+
+
+def _period_display(period: Period) -> str:
+    return _PERIOD_DISPLAY.get(period, period.value)
+
+
+def _require_period(name: str, formula: str, fact: Fact, *expected: Period) -> None:
+    """Only enforced when the fact actually states a period -- older or
+    hand-entered data without one is left alone rather than blocked, but
+    once a period IS recorded it must be the one this formula assumes."""
+    if fact.period is not None and fact.period not in expected:
+        expected_list = " or ".join(f"{_article(_period_display(e))} {_period_display(e)}" for e in expected)
+        actual = _period_display(fact.period)
+        raise _Missing(
+            ClaimCheckResult(
+                name=name,
+                formula=formula,
+                status=ClaimCheckStatus.PERIOD_MISMATCH,
+                error=(
+                    f"Cannot calculate {_display(name)}: {fact.label!r} covers "
+                    f"{_article(actual)} {actual} period, but this calculation needs {expected_list} "
+                    "figure. Using it anyway would misstate the rate (e.g. treating an "
+                    "already-annual number as if it still needed annualising)."
+                ),
+            )
+        )
+
+
+def _require_same_period(name: str, formula: str, *facts: Fact) -> None:
+    periods = {f.period for f in facts if f.period is not None}
+    if len(periods) > 1:
+        period_list = " vs ".join(sorted(_period_display(p) for p in periods))
+        raise _Missing(
+            ClaimCheckResult(
+                name=name,
+                formula=formula,
+                status=ClaimCheckStatus.PERIOD_MISMATCH,
+                error=(
+                    f"Cannot calculate {_display(name)}: the inputs cover different periods "
+                    f"({period_list}), so comparing them directly would not be like-for-like."
+                ),
+            )
+        )
+
+
+def _zero_denominator(name: str, formula: str, source_ids: list[int], denominator_label: str) -> ClaimCheckResult:
     return ClaimCheckResult(
         name=name,
         formula=formula,
         source_ids=source_ids,
         status=ClaimCheckStatus.ZERO_DENOMINATOR,
-        error="denominator is zero",
+        error=f"Cannot calculate {_display(name)}: {denominator_label} is zero, so the ratio is undefined.",
+    )
+
+
+def _as_of_gap_note(label_a: str, fact_a: Fact, label_b: str, fact_b: Fact) -> Optional[str]:
+    """A visible staleness warning when two inputs to the same ratio were
+    measured on dates far enough apart that the ratio mixes an old figure
+    with a newer one -- e.g. a 2022 valuation over 2025 revenue. Returns
+    None when either date is missing or the gap is small; the calculation
+    still runs either way, this only makes the mismatch visible instead of
+    silently blending two different moments in time."""
+    if not fact_a.as_of or not fact_b.as_of:
+        return None
+    gap_days = abs((fact_a.as_of - fact_b.as_of).days)
+    if gap_days <= AS_OF_GAP_WARNING_DAYS:
+        return None
+    return (
+        f"{label_a} is as of {fact_a.as_of.isoformat()} and {label_b} is as of "
+        f"{fact_b.as_of.isoformat()} -- roughly {gap_days // 30} months apart. This ratio "
+        "mixes those two moments rather than comparing figures from the same date."
     )
 
 
@@ -172,6 +296,7 @@ def annualised_revenue_run_rate(monthly_revenue: Optional[Fact]) -> ClaimCheckRe
         _require_facts(name, formula, monthly_revenue=monthly_revenue)
         assert monthly_revenue is not None
         _require_metric_kind(name, formula, monthly_revenue, MetricKind.REVENUE)
+        _require_period(name, formula, monthly_revenue, Period.MONTHLY)
     except _Missing as m:
         return m.result
 
@@ -198,23 +323,35 @@ def annualised_revenue_run_rate(monthly_revenue: Optional[Fact]) -> ClaimCheckRe
 # ---------------------------------------------------------------------------
 
 
-def valuation_multiple(valuation: Optional[Fact], monthly_revenue: Optional[Fact]) -> ClaimCheckResult:
+def valuation_multiple(valuation: Optional[Fact], annual_revenue: Optional[Fact]) -> ClaimCheckResult:
+    """valuation / annual revenue.
+
+    `annual_revenue` must already BE an annual figure -- either a directly
+    disclosed one (common for rated NBFCs and larger companies that report
+    FY totals, not monthly revenue), or one derived by calling
+    `annualised_revenue_run_rate` first and passing its result in as a Fact
+    (what the CLI does for companies that only disclose monthly revenue).
+    This function does not multiply by 12 itself, so it must never be
+    handed a monthly figure directly.
+    """
     name = "valuation_multiple"
-    formula = "valuation / (monthly_revenue * 12)"
+    formula = "valuation / annual_revenue"
     try:
-        _require_facts(name, formula, valuation=valuation, monthly_revenue=monthly_revenue)
-        assert valuation is not None and monthly_revenue is not None
+        _require_facts(name, formula, valuation=valuation, annual_revenue=annual_revenue)
+        assert valuation is not None and annual_revenue is not None
         _require_metric_kind(name, formula, valuation, MetricKind.VALUATION)
-        _require_metric_kind(name, formula, monthly_revenue, MetricKind.REVENUE)
-        _require_same_currency(name, formula, valuation, monthly_revenue)
+        _require_metric_kind(name, formula, annual_revenue, MetricKind.REVENUE)
+        _require_period(name, formula, annual_revenue, Period.ANNUAL)
+        _require_period(name, formula, valuation, Period.POINT_IN_TIME)
+        _require_same_currency(name, formula, valuation, annual_revenue)
     except _Missing as m:
         return m.result
 
-    annual_revenue = _dec(monthly_revenue.value) * 12
-    if annual_revenue == 0:
-        return _zero_denominator(name, formula, valuation.source_ids + monthly_revenue.source_ids)
+    annual_revenue_value = _dec(annual_revenue.value)
+    if annual_revenue_value == 0:
+        return _zero_denominator(name, formula, valuation.source_ids + annual_revenue.source_ids, "annual_revenue")
 
-    multiple = _dec(valuation.value) / annual_revenue
+    multiple = _dec(valuation.value) / annual_revenue_value
     if multiple < VALUATION_MULTIPLE_LOW_HEURISTIC:
         interpretation = (
             f"Below the commonly cited {VALUATION_MULTIPLE_LOW_HEURISTIC}x-"
@@ -239,15 +376,20 @@ def valuation_multiple(valuation: Optional[Fact], monthly_revenue: Optional[Fact
         formula=formula,
         inputs=[
             f"valuation={valuation.value} {valuation.currency.value}",
-            f"monthly_revenue={monthly_revenue.value} {monthly_revenue.currency.value}",
+            f"annual_revenue={annual_revenue.value} {annual_revenue.currency.value}",
         ],
-        source_ids=sorted(set(valuation.source_ids) | set(monthly_revenue.source_ids)),
+        source_ids=sorted(set(valuation.source_ids) | set(annual_revenue.source_ids)),
         result=float(multiple),
         result_display=f"{_round(multiple, 1)}x",
         unit="x",
         assumptions=[
-            "Uses annualised revenue run rate (monthly x 12) as the revenue base, "
-            "not audited annual revenue.",
+            a
+            for a in [
+                f"Revenue base: {annual_revenue.definition or annual_revenue.label} "
+                f"(as_of={annual_revenue.as_of}).",
+                _as_of_gap_note("valuation", valuation, "annual_revenue", annual_revenue),
+            ]
+            if a
         ],
         interpretation=interpretation,
         status=ClaimCheckStatus.OK,
@@ -267,12 +409,15 @@ def arpu(monthly_revenue: Optional[Fact], paying_customers: Optional[Fact]) -> C
         assert monthly_revenue is not None and paying_customers is not None
         _require_metric_kind(name, formula, monthly_revenue, MetricKind.REVENUE)
         _require_metric_kind(name, formula, paying_customers, MetricKind.PAYING_CUSTOMERS)
+        _require_period(name, formula, monthly_revenue, Period.MONTHLY)
     except _Missing as m:
         return m.result
 
     customers = _dec(paying_customers.value)
     if customers == 0:
-        return _zero_denominator(name, formula, monthly_revenue.source_ids + paying_customers.source_ids)
+        return _zero_denominator(
+            name, formula, monthly_revenue.source_ids + paying_customers.source_ids, "paying_customers"
+        )
 
     value = _dec(monthly_revenue.value) / customers
     return ClaimCheckResult(
@@ -308,12 +453,13 @@ def growth_multiple(current: Optional[Fact], earlier: Optional[Fact]) -> ClaimCh
         _require_metric_kind(name, formula, current, MetricKind.REVENUE)
         _require_metric_kind(name, formula, earlier, MetricKind.REVENUE)
         _require_same_currency(name, formula, current, earlier)
+        _require_same_period(name, formula, current, earlier)
     except _Missing as m:
         return m.result
 
     earlier_value = _dec(earlier.value)
     if earlier_value == 0:
-        return _zero_denominator(name, formula, current.source_ids + earlier.source_ids)
+        return _zero_denominator(name, formula, current.source_ids + earlier.source_ids, "earlier")
 
     multiple = _dec(current.value) / earlier_value
     assumptions = [
@@ -346,42 +492,52 @@ def growth_multiple(current: Optional[Fact], earlier: Optional[Fact]) -> ClaimCh
 
 
 def capital_efficiency(
-    total_capital_raised: Optional[Fact], monthly_revenue: Optional[Fact]
+    total_capital_raised: Optional[Fact], annual_revenue: Optional[Fact]
 ) -> ClaimCheckResult:
+    """annual_revenue / total_capital_raised. See valuation_multiple's
+    docstring: `annual_revenue` must already be annual (disclosed directly,
+    or derived from monthly via annualised_revenue_run_rate)."""
     name = "capital_efficiency"
-    formula = "(monthly_revenue * 12) / total_capital_raised"
+    formula = "annual_revenue / total_capital_raised"
     try:
         _require_facts(
-            name, formula, total_capital_raised=total_capital_raised, monthly_revenue=monthly_revenue
+            name, formula, total_capital_raised=total_capital_raised, annual_revenue=annual_revenue
         )
-        assert total_capital_raised is not None and monthly_revenue is not None
+        assert total_capital_raised is not None and annual_revenue is not None
         _require_metric_kind(name, formula, total_capital_raised, MetricKind.CAPITAL_RAISED)
-        _require_metric_kind(name, formula, monthly_revenue, MetricKind.REVENUE)
-        _require_same_currency(name, formula, total_capital_raised, monthly_revenue)
+        _require_metric_kind(name, formula, annual_revenue, MetricKind.REVENUE)
+        _require_period(name, formula, annual_revenue, Period.ANNUAL)
+        _require_same_currency(name, formula, total_capital_raised, annual_revenue)
     except _Missing as m:
         return m.result
 
     raised = _dec(total_capital_raised.value)
     if raised == 0:
-        return _zero_denominator(name, formula, total_capital_raised.source_ids + monthly_revenue.source_ids)
+        return _zero_denominator(
+            name, formula, total_capital_raised.source_ids + annual_revenue.source_ids, "total_capital_raised"
+        )
 
-    annual_revenue = _dec(monthly_revenue.value) * 12
-    ratio = annual_revenue / raised
+    ratio = _dec(annual_revenue.value) / raised
     return ClaimCheckResult(
         name=name,
         formula=formula,
         inputs=[
-            f"monthly_revenue={monthly_revenue.value} {monthly_revenue.currency.value}",
+            f"annual_revenue={annual_revenue.value} {annual_revenue.currency.value}",
             f"total_capital_raised={total_capital_raised.value} {total_capital_raised.currency.value}",
         ],
-        source_ids=sorted(set(total_capital_raised.source_ids) | set(monthly_revenue.source_ids)),
+        source_ids=sorted(set(total_capital_raised.source_ids) | set(annual_revenue.source_ids)),
         result=float(ratio),
-        result_display=f"{_round(ratio, 2)}x annualised revenue per unit raised",
+        result_display=f"{_round(ratio, 2)}x annual revenue per unit raised",
         unit="x",
         assumptions=[
-            "Defined here as annualised revenue run rate divided by total capital "
-            "raised to date. This is a rough efficiency signal, not a margin or "
-            "burn-multiple calculation."
+            a
+            for a in [
+                f"Revenue base: {annual_revenue.definition or annual_revenue.label} "
+                f"(as_of={annual_revenue.as_of}). This is a rough efficiency signal, "
+                "not a margin or burn-multiple calculation.",
+                _as_of_gap_note("total_capital_raised", total_capital_raised, "annual_revenue", annual_revenue),
+            ]
+            if a
         ],
         status=ClaimCheckStatus.OK,
     )
@@ -413,21 +569,31 @@ def capital_raised_per_year(
     years = _dec(years_since_founding.value)
     if years == 0:
         return _zero_denominator(
-            name, formula, total_capital_raised.source_ids + years_since_founding.source_ids
+            name, formula, total_capital_raised.source_ids + years_since_founding.source_ids,
+            "years_since_founding",
         )
 
     value = _dec(total_capital_raised.value) / years
+    gap_note = _as_of_gap_note("total_capital_raised", total_capital_raised, "years_since_founding", years_since_founding)
     return ClaimCheckResult(
         name=name,
         formula=formula,
         inputs=[
-            f"total_capital_raised={total_capital_raised.value} {total_capital_raised.currency.value}",
-            f"years_since_founding={years_since_founding.value}",
+            f"total_capital_raised={total_capital_raised.value} {total_capital_raised.currency.value} (as_of={total_capital_raised.as_of})",
+            f"years_since_founding={years_since_founding.value} (as_of={years_since_founding.as_of})",
         ],
         source_ids=sorted(set(total_capital_raised.source_ids) | set(years_since_founding.source_ids)),
         result=float(value),
         result_display=f"{format_money(float(value), total_capital_raised.currency)} per year",
         unit=f"{total_capital_raised.currency.value}/year" if total_capital_raised.currency else None,
+        assumptions=(
+            [
+                "years_since_founding should be measured as of the same date as "
+                "total_capital_raised (not as of today), or this rate understates/overstates "
+                "how fast the company actually raised money."
+            ]
+            + ([gap_note] if gap_note else [])
+        ),
         status=ClaimCheckStatus.OK,
     )
 
@@ -453,7 +619,9 @@ def implied_dilution(
 
     post_money = _dec(post_money_valuation.value)
     if post_money == 0:
-        return _zero_denominator(name, formula, round_size.source_ids + post_money_valuation.source_ids)
+        return _zero_denominator(
+            name, formula, round_size.source_ids + post_money_valuation.source_ids, "post_money_valuation"
+        )
 
     dilution = _dec(round_size.value) / post_money
     interpretation = (

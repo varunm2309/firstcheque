@@ -1,0 +1,108 @@
+{
+  "annualised_revenue_run_rate": {
+    "name": "annualised_revenue_run_rate",
+    "formula": "monthly_revenue * 12",
+    "inputs": [],
+    "source_ids": [],
+    "result": null,
+    "result_display": null,
+    "unit": null,
+    "assumptions": [],
+    "interpretation": null,
+    "status": "missing_input",
+    "error": "Cannot calculate annualised revenue run rate: no a sourced monthly revenue figure was found in the sources reviewed."
+  },
+  "valuation_multiple": {
+    "name": "valuation_multiple",
+    "formula": "valuation / annual_revenue",
+    "inputs": [],
+    "source_ids": [],
+    "result": null,
+    "result_display": null,
+    "unit": null,
+    "assumptions": [],
+    "interpretation": null,
+    "status": "missing_input",
+    "error": "Cannot calculate valuation multiple: no a sourced valuation was found in the sources reviewed."
+  },
+  "arpu": {
+    "name": "arpu",
+    "formula": "monthly_revenue / paying_customers",
+    "inputs": [],
+    "source_ids": [],
+    "result": null,
+    "result_display": null,
+    "unit": null,
+    "assumptions": [],
+    "interpretation": null,
+    "status": "missing_input",
+    "error": "Cannot calculate ARPU: none of these were found in the sources reviewed: a sourced monthly revenue figure; a sourced paying-customer count."
+  },
+  "growth_multiple": {
+    "name": "growth_multiple",
+    "formula": "current_monthly_revenue / earlier_monthly_revenue",
+    "inputs": [],
+    "source_ids": [],
+    "result": null,
+    "result_display": null,
+    "unit": null,
+    "assumptions": [],
+    "interpretation": null,
+    "status": "missing_input",
+    "error": "Cannot calculate growth multiple: none of these were found in the sources reviewed: a sourced current-period revenue figure; a sourced earlier-period revenue figure."
+  },
+  "capital_efficiency": {
+    "name": "capital_efficiency",
+    "formula": "annual_revenue / total_capital_raised",
+    "inputs": [
+      "annual_revenue=290000000.0 INR",
+      "total_capital_raised=3240000000.0 INR"
+    ],
+    "source_ids": [
+      1
+    ],
+    "result": 0.08950617283950617,
+    "result_display": "0.09x annual revenue per unit raised",
+    "unit": "x",
+    "assumptions": [
+      "Revenue base: KPL consolidated total income, FY24 (audited, most recent full fiscal year), per CARE Ratings. (as_of=2024-03-31). This is a rough efficiency signal, not a margin or burn-multiple calculation.",
+      "total_capital_raised is as of 2025-04-25 and annual_revenue is as of 2024-03-31 -- roughly 13 months apart. This ratio mixes those two moments rather than comparing figures from the same date."
+    ],
+    "interpretation": null,
+    "status": "ok",
+    "error": null
+  },
+  "capital_raised_per_year": {
+    "name": "capital_raised_per_year",
+    "formula": "total_capital_raised / years_since_founding",
+    "inputs": [
+      "total_capital_raised=3240000000.0 INR (as_of=2025-04-25)",
+      "years_since_founding=7.78 (as_of=2025-04-25)"
+    ],
+    "source_ids": [
+      1
+    ],
+    "result": 416452442.15938306,
+    "result_display": "INR 41.65 Cr per year",
+    "unit": "INR/year",
+    "assumptions": [
+      "years_since_founding should be measured as of the same date as total_capital_raised (not as of today), or this rate understates/overstates how fast the company actually raised money."
+    ],
+    "interpretation": null,
+    "status": "ok",
+    "error": null
+  },
+  "implied_dilution": {
+    "name": "implied_dilution",
+    "formula": "round_size / post_money_valuation",
+    "inputs": [],
+    "source_ids": [],
+    "result": null,
+    "result_display": null,
+    "unit": null,
+    "assumptions": [],
+    "interpretation": null,
+    "status": "missing_input",
+    "error": "Cannot calculate implied dilution: none of these were found in the sources reviewed: a sourced round size; a sourced post-money valuation."
+  }
+}

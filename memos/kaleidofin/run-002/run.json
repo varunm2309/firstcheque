@@ -1,0 +1,12 @@
+{
+  "company": "Kaleidofin",
+  "run_id": "run-002",
+  "created_at": "2026-09-17T15:44:20.728030",
+  "updated_at": "2026-09-17T17:48:14.849716",
+  "previous_run_id": "run-001",
+  "evidence_reused_from": "run-001",
+  "tools_used": [
+    "WebSearch"
+  ],
+  "execution_notes": "Bugfix pass 2026-09-18: same years_since_founding correction as run-001. No new research performed in this pass."
+}

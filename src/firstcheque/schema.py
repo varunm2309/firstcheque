@@ -81,6 +81,7 @@ class ClaimCheckStatus(str, Enum):
     ZERO_DENOMINATOR = "zero_denominator"
     CURRENCY_MISMATCH = "currency_mismatch"
     METRIC_MISMATCH = "metric_mismatch"
+    PERIOD_MISMATCH = "period_mismatch"
     NOT_APPLICABLE = "not_applicable"
 
 
@@ -181,6 +182,15 @@ class Numbers(BaseModel):
 
     monthly_revenue_current: Optional[Fact] = None
     monthly_revenue_earlier: Optional[Fact] = None
+    annual_revenue: Optional[Fact] = Field(
+        default=None,
+        description=(
+            "A directly disclosed annual revenue figure (e.g. FY total income from a rated "
+            "NBFC or an annual report). Only set this OR monthly_revenue_current -- if both "
+            "are set, compute-claims prefers this one and ignores the monthly figure for "
+            "valuation_multiple/capital_efficiency."
+        ),
+    )
     valuation: Optional[Fact] = None
     post_money_valuation: Optional[Fact] = None
     latest_round_size: Optional[Fact] = None
@@ -284,11 +294,20 @@ class Memo(BaseModel):
 
 class RunMeta(BaseModel):
     """Execution metadata for one run. Only records what actually happened;
-    never invents timing, cost or usage figures."""
+    never invents timing, cost or usage figures.
+
+    `created_at` is set once, the first time `finalize-run` runs for this
+    run, and preserved on every later call -- it answers "when was this
+    run's research originally done," which a later re-render or
+    recomputation must never overwrite. `updated_at` records the most
+    recent `finalize-run` call instead, so a re-run (e.g. after fixing a
+    bug in claims.py) is visible without erasing the original date.
+    """
 
     company: str
     run_id: str
     created_at: datetime
+    updated_at: Optional[datetime] = None
     previous_run_id: Optional[str] = None
     evidence_reused_from: Optional[str] = None
     tools_used: list[str] = Field(default_factory=list)

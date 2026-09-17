@@ -1,0 +1,8 @@
+{"stage": "extract_draft", "executor": "python", "status": "ok", "timestamp": "2026-09-17T16:34:29", "artifacts": ["memo.json"], "error": null, "notes": null}
+{"stage": "compute_claims", "executor": "python", "status": "ok", "timestamp": "2026-09-17T16:34:29", "artifacts": ["claim_checks.json"], "error": null, "notes": "2/7 checks computed"}
+{"stage": "citation_check", "executor": "python", "status": "ok", "timestamp": "2026-09-17T16:34:30", "artifacts": [], "error": null, "notes": "citation_support_rate=83% (10/12); unverified_claims=0"}
+{"stage": "render_memo", "executor": "python", "status": "ok", "timestamp": "2026-09-17T16:34:30", "artifacts": ["memo.md", "memo.html"], "error": null, "notes": null}
+{"stage": "extract_draft", "executor": "python", "status": "ok", "timestamp": "2026-09-17T17:47:22", "artifacts": ["memo.json"], "error": null, "notes": "Schema and citation-ID validation only; this timestamp is when memo.json was last checked, not when it was written or researched."}
+{"stage": "compute_claims", "executor": "python", "status": "ok", "timestamp": "2026-09-17T17:47:22", "artifacts": ["claim_checks.json"], "error": null, "notes": "2/7 checks computed"}
+{"stage": "citation_check", "executor": "python", "status": "ok", "timestamp": "2026-09-17T17:48:02", "artifacts": [], "error": null, "notes": "citation_support_rate=83% (10/12); unverified_claims=0. Structural check + rate calculation only -- the supported/unsupported judgment on each claim was made by Claude when it wrote memo.json, not at this timestamp."}
+{"stage": "render_memo", "executor": "python", "status": "ok", "timestamp": "2026-09-17T17:48:02", "artifacts": ["memo.md", "memo.html"], "error": null, "notes": null}

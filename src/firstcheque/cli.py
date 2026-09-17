@@ -26,13 +26,27 @@ import json
 import sys
 from datetime import date, datetime
 from pathlib import Path
+from typing import Optional
 
 from pydantic import ValidationError
 
 from . import claims as claims_mod
 from . import storage
-from .render import render_changes_md, render_memo_md
-from .schema import ClaimCheckResult, Claim, Memo, RunMeta, Source, citation_support_rate
+from .render import render_changes_md, render_memo_html, render_memo_md
+from .schema import (
+    ClaimCheckResult,
+    ClaimCheckStatus,
+    Claim,
+    Fact,
+    Memo,
+    MetricKind,
+    Period,
+    RunMeta,
+    Source,
+    citation_support_rate,
+)
+from .stages import STAGES_BY_ID, VALID_EXECUTORS, VALID_STATUSES
+from . import workflow_viewer
 
 
 def _print(*args) -> None:
@@ -56,6 +70,12 @@ def cmd_new_run(args: argparse.Namespace) -> int:
         storage.write_json(run_dir / "sources.json", [s.model_dump(mode="json") for s in previous_sources])
 
     storage.write_review_template(run_dir, company, run_id, previous)
+
+    artifacts = ["review.md"] + (["sources.json"] if previous_sources else [])
+    storage.append_event(
+        run_dir, "start_run", "python", "ok", artifacts=artifacts,
+        notes=f"previous_run={previous.name if previous else None}",
+    )
 
     _print(f"run_dir={run_dir}")
     _print(f"run_id={run_id}")
@@ -86,6 +106,11 @@ def cmd_merge_sources(args: argparse.Namespace) -> int:
     result = storage.merge_sources(current, new_sources)
     storage.write_json(run_dir / "sources.json", [s.model_dump(mode="json") for s in result.merged])
 
+    storage.append_event(
+        run_dir, "collect_evidence", "python", "ok", artifacts=["sources.json"],
+        notes=f"reused={len(result.reused_ids)} new={len(result.new_ids)} total={len(result.merged)}",
+    )
+
     _print(f"reused={len(result.reused_ids)} new={len(result.new_ids)} total={len(result.merged)}")
     if result.new_ids:
         _print("new_source_ids=" + ",".join(str(i) for i in result.new_ids))
@@ -102,12 +127,14 @@ def cmd_validate_memo(args: argparse.Namespace) -> int:
     data = storage.read_json(run_dir / "memo.json")
     if data is None:
         _print("ERROR: memo.json not found")
+        storage.append_event(run_dir, "extract_draft", "python", "error", error="memo.json not found")
         return 1
     try:
         Memo.model_validate(data)
     except ValidationError as e:
         _print("INVALID:")
         _print(str(e))
+        storage.append_event(run_dir, "extract_draft", "python", "error", error=str(e)[:500])
         return 1
 
     sources = {s.id for s in storage.load_sources(run_dir)}
@@ -121,8 +148,17 @@ def cmd_validate_memo(args: argparse.Namespace) -> int:
         _print("INVALID: citations reference unknown source ids:")
         for claim_id, sid in bad_refs:
             _print(f"  claim {claim_id} -> source {sid} (not in sources.json)")
+        storage.append_event(
+            run_dir, "extract_draft", "python", "error",
+            error=f"{len(bad_refs)} claim(s) cite unknown source ids",
+        )
         return 1
 
+    storage.append_event(
+        run_dir, "extract_draft", "python", "ok", artifacts=["memo.json"],
+        notes="Schema and citation-ID validation only; this timestamp is when memo.json was "
+        "last checked, not when it was written or researched.",
+    )
     _print("OK")
     return 0
 
@@ -132,6 +168,30 @@ def cmd_validate_memo(args: argparse.Namespace) -> int:
 # ---------------------------------------------------------------------------
 
 
+def _resolve_annual_revenue(n) -> Optional[Fact]:
+    """Prefer a directly disclosed annual revenue figure. Fall back to
+    annualising monthly revenue (still pure Python arithmetic, computed
+    once here rather than duplicated in both valuation_multiple and
+    capital_efficiency)."""
+    if n.annual_revenue is not None:
+        return n.annual_revenue
+    if n.monthly_revenue_current is None:
+        return None
+    run_rate = claims_mod.annualised_revenue_run_rate(n.monthly_revenue_current)
+    if run_rate.status != ClaimCheckStatus.OK:
+        return None
+    return Fact(
+        label="derived_annual_revenue",
+        value=run_rate.result,
+        currency=n.monthly_revenue_current.currency,
+        metric_kind=MetricKind.REVENUE,
+        period=Period.ANNUAL,
+        definition="Derived by annualising monthly_revenue_current (x12); not a directly disclosed annual figure.",
+        as_of=n.monthly_revenue_current.as_of,
+        source_ids=n.monthly_revenue_current.source_ids,
+    )
+
+
 def cmd_compute_claims(args: argparse.Namespace) -> int:
     run_dir = Path(args.run_dir)
     memo = storage.load_memo(run_dir)
@@ -139,13 +199,14 @@ def cmd_compute_claims(args: argparse.Namespace) -> int:
         _print("ERROR: memo.json not found or invalid")
         return 1
     n = memo.numbers
+    annual_revenue = _resolve_annual_revenue(n)
 
     results: dict[str, ClaimCheckResult] = {
         "annualised_revenue_run_rate": claims_mod.annualised_revenue_run_rate(n.monthly_revenue_current),
-        "valuation_multiple": claims_mod.valuation_multiple(n.valuation, n.monthly_revenue_current),
+        "valuation_multiple": claims_mod.valuation_multiple(n.valuation, annual_revenue),
         "arpu": claims_mod.arpu(n.monthly_revenue_current, n.paying_customers),
         "growth_multiple": claims_mod.growth_multiple(n.monthly_revenue_current, n.monthly_revenue_earlier),
-        "capital_efficiency": claims_mod.capital_efficiency(n.total_capital_raised, n.monthly_revenue_current),
+        "capital_efficiency": claims_mod.capital_efficiency(n.total_capital_raised, annual_revenue),
         "capital_raised_per_year": claims_mod.capital_raised_per_year(
             n.total_capital_raised, n.years_since_founding
         ),
@@ -154,6 +215,11 @@ def cmd_compute_claims(args: argparse.Namespace) -> int:
 
     storage.write_json(
         run_dir / "claim_checks.json", {name: r.model_dump(mode="json") for name, r in results.items()}
+    )
+    ok_count = sum(1 for r in results.values() if r.status == ClaimCheckStatus.OK)
+    storage.append_event(
+        run_dir, "compute_claims", "python", "ok", artifacts=["claim_checks.json"],
+        notes=f"{ok_count}/{len(results)} checks computed",
     )
 
     for name, r in results.items():
@@ -185,7 +251,19 @@ def cmd_citation_check(args: argparse.Namespace) -> int:
         _print("ERROR: claims cite unknown source ids:")
         for c in dangling:
             _print(f"  {c.id}: {c.text!r} -> {c.source_ids}")
+        storage.append_event(
+            run_dir, "citation_check", "python", "error",
+            error=f"{len(dangling)} claim(s) cite unknown source ids",
+        )
         return 1
+
+    rate_str = f"{rate:.0%} ({supported}/{denominator})" if rate is not None else "n/a"
+    storage.append_event(
+        run_dir, "citation_check", "python", "ok",
+        notes=f"citation_support_rate={rate_str}; unverified_claims={len(unverified)}. "
+        "Structural check + rate calculation only -- the supported/unsupported judgment on "
+        "each claim was made by Claude when it wrote memo.json, not at this timestamp.",
+    )
 
     _print(f"tracked_claims={len(memo.claims)}")
     _print(f"unverified_claims={len(unverified)}")
@@ -215,6 +293,12 @@ def cmd_render(args: argparse.Namespace) -> int:
     memo_md = render_memo_md(memo, sources, checks)
     (run_dir / "memo.md").write_text(memo_md, encoding="utf-8")
     _print(f"wrote {run_dir / 'memo.md'} ({len(memo_md.split())} words)")
+
+    memo_html = render_memo_html(memo, sources, checks)
+    (run_dir / "memo.html").write_text(memo_html, encoding="utf-8")
+    _print(f"wrote {run_dir / 'memo.html'}")
+
+    storage.append_event(run_dir, "render_memo", "python", "ok", artifacts=["memo.md", "memo.html"])
     return 0
 
 
@@ -234,6 +318,10 @@ def cmd_diff(args: argparse.Namespace) -> int:
         return 1
     if idx == 0:
         _print("no previous run to diff against (this is run-001)")
+        storage.append_event(
+            run_dir, "compare_previous_run", "python", "skipped",
+            notes="no previous run exists for this company",
+        )
         return 0
     previous_dir = runs[idx - 1]
 
@@ -241,6 +329,9 @@ def cmd_diff(args: argparse.Namespace) -> int:
     current_memo = storage.load_memo(run_dir)
     if previous_memo is None or current_memo is None:
         _print("ERROR: both runs need a valid memo.json to diff")
+        storage.append_event(
+            run_dir, "compare_previous_run", "python", "error", error="missing memo.json in one of the two runs"
+        )
         return 1
 
     previous_checks = storage.load_claim_checks(previous_dir)
@@ -261,6 +352,10 @@ def cmd_diff(args: argparse.Namespace) -> int:
         new_source_count=new_source_count,
     )
     (run_dir / "changes.md").write_text(changes_md, encoding="utf-8")
+    storage.append_event(
+        run_dir, "compare_previous_run", "python", "ok", artifacts=["changes.md"],
+        notes=f"vs {previous_dir.name}",
+    )
     _print(f"wrote {run_dir / 'changes.md'}")
     return 0
 
@@ -281,17 +376,67 @@ def cmd_finalize_run(args: argparse.Namespace) -> int:
         return 1
     previous_dir = runs[idx - 1] if idx > 0 else None
 
+    existing = storage.load_run_meta(run_dir)
+    now = datetime.now()
     meta = RunMeta(
         company=company,
         run_id=run_dir.name,
-        created_at=datetime.now(),
+        created_at=existing.created_at if existing else now,
+        updated_at=now if existing else None,
         previous_run_id=previous_dir.name if previous_dir else None,
         evidence_reused_from=previous_dir.name if previous_dir else None,
         tools_used=args.tools_used.split(",") if args.tools_used else [],
         execution_notes=args.notes,
     )
     storage.write_json(run_dir / "run.json", meta)
-    _print(f"wrote {run_dir / 'run.json'}")
+    if existing:
+        _print(f"wrote {run_dir / 'run.json'} (created_at preserved from {existing.created_at.isoformat()})")
+    else:
+        _print(f"wrote {run_dir / 'run.json'}")
+    return 0
+
+
+# ---------------------------------------------------------------------------
+# log-event -- for Claude to record the stages it does itself (planning,
+# research, extraction judgment, citation-support judgment, the follow-up
+# pass). The python-only stages log themselves automatically above; this
+# command exists so the stages that only Claude can attest to still end up
+# in the same real, timestamped event log.
+# ---------------------------------------------------------------------------
+
+
+def cmd_log_event(args: argparse.Namespace) -> int:
+    run_dir = Path(args.run_dir)
+    if not run_dir.exists():
+        _print(f"ERROR: {run_dir} does not exist")
+        return 1
+    if args.stage not in STAGES_BY_ID:
+        _print(f"ERROR: unknown stage {args.stage!r}. Valid stages: {', '.join(sorted(STAGES_BY_ID))}")
+        return 1
+    if args.executor not in VALID_EXECUTORS:
+        _print(f"ERROR: unknown executor {args.executor!r}. Valid: {', '.join(sorted(VALID_EXECUTORS))}")
+        return 1
+    if args.status not in VALID_STATUSES:
+        _print(f"ERROR: unknown status {args.status!r}. Valid: {', '.join(sorted(VALID_STATUSES))}")
+        return 1
+
+    artifacts = [a.strip() for a in args.artifacts.split(",") if a.strip()] if args.artifacts else []
+    event = storage.append_event(
+        run_dir, args.stage, args.executor, args.status,
+        artifacts=artifacts, error=args.error, notes=args.notes,
+    )
+    _print(f"logged: {event['stage']} executor={event['executor']} status={event['status']} at {event['timestamp']}")
+    return 0
+
+
+# ---------------------------------------------------------------------------
+# generate-workflow-viewer
+# ---------------------------------------------------------------------------
+
+
+def cmd_generate_workflow_viewer(args: argparse.Namespace) -> int:
+    out_path, run_count = workflow_viewer.generate(Path(args.out))
+    _print(f"wrote {out_path} ({run_count} run(s) embedded)")
     return 0
 
 
@@ -370,6 +515,23 @@ def build_parser() -> argparse.ArgumentParser:
     p = sub.add_parser("status", help="list runs for a company and their review status")
     p.add_argument("company")
     p.set_defaults(func=cmd_status)
+
+    p = sub.add_parser("log-event", help="record a real stage-transition event for a run (Claude-executed stages)")
+    p.add_argument("run_dir")
+    p.add_argument("--stage", required=True, help="one of the ids in stages.py STAGES")
+    p.add_argument("--executor", required=True, choices=sorted(VALID_EXECUTORS))
+    p.add_argument("--status", required=True, choices=sorted(VALID_STATUSES))
+    p.add_argument("--artifacts", default="", help="comma-separated relative paths written/used")
+    p.add_argument("--error", default=None)
+    p.add_argument("--notes", default=None)
+    p.set_defaults(func=cmd_log_event)
+
+    p = sub.add_parser(
+        "generate-workflow-viewer",
+        help="regenerate workflow.html from all saved runs under memos/",
+    )
+    p.add_argument("--out", default="workflow.html", help="output path (default: workflow.html at repo root)")
+    p.set_defaults(func=cmd_generate_workflow_viewer)
 
     return parser
 

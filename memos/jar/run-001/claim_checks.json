@@ -1,0 +1,101 @@
+{
+  "annualised_revenue_run_rate": {
+    "name": "annualised_revenue_run_rate",
+    "formula": "monthly_revenue * 12",
+    "inputs": [],
+    "source_ids": [],
+    "result": null,
+    "result_display": null,
+    "unit": null,
+    "assumptions": [],
+    "interpretation": null,
+    "status": "missing_input",
+    "error": "Cannot calculate annualised revenue run rate: no a sourced monthly revenue figure was found in the sources reviewed."
+  },
+  "valuation_multiple": {
+    "name": "valuation_multiple",
+    "formula": "valuation / annual_revenue",
+    "inputs": [],
+    "source_ids": [],
+    "result": null,
+    "result_display": null,
+    "unit": null,
+    "assumptions": [],
+    "interpretation": null,
+    "status": "currency_mismatch",
+    "error": "Cannot calculate valuation multiple: the inputs are reported in different currencies (INR and USD). No exchange rate was applied -- converting would mix a sourced figure with an assumed one."
+  },
+  "arpu": {
+    "name": "arpu",
+    "formula": "monthly_revenue / paying_customers",
+    "inputs": [],
+    "source_ids": [],
+    "result": null,
+    "result_display": null,
+    "unit": null,
+    "assumptions": [],
+    "interpretation": null,
+    "status": "missing_input",
+    "error": "Cannot calculate ARPU: none of these were found in the sources reviewed: a sourced monthly revenue figure; a sourced paying-customer count."
+  },
+  "growth_multiple": {
+    "name": "growth_multiple",
+    "formula": "current_monthly_revenue / earlier_monthly_revenue",
+    "inputs": [],
+    "source_ids": [],
+    "result": null,
+    "result_display": null,
+    "unit": null,
+    "assumptions": [],
+    "interpretation": null,
+    "status": "missing_input",
+    "error": "Cannot calculate growth multiple: none of these were found in the sources reviewed: a sourced current-period revenue figure; a sourced earlier-period revenue figure."
+  },
+  "capital_efficiency": {
+    "name": "capital_efficiency",
+    "formula": "annual_revenue / total_capital_raised",
+    "inputs": [],
+    "source_ids": [],
+    "result": null,
+    "result_display": null,
+    "unit": null,
+    "assumptions": [],
+    "interpretation": null,
+    "status": "currency_mismatch",
+    "error": "Cannot calculate capital efficiency: the inputs are reported in different currencies (INR and USD). No exchange rate was applied -- converting would mix a sourced figure with an assumed one."
+  },
+  "capital_raised_per_year": {
+    "name": "capital_raised_per_year",
+    "formula": "total_capital_raised / years_since_founding",
+    "inputs": [
+      "total_capital_raised=59100000.0 USD (as_of=2022-08-18)",
+      "years_since_founding=1.13 (as_of=2022-08-18)"
+    ],
+    "source_ids": [
+      2,
+      3
+    ],
+    "result": 52300884.95575221,
+    "result_display": "USD 52.30M per year",
+    "unit": "USD/year",
+    "assumptions": [
+      "years_since_founding should be measured as of the same date as total_capital_raised (not as of today), or this rate understates/overstates how fast the company actually raised money."
+    ],
+    "interpretation": null,
+    "status": "ok",
+    "error": null
+  },
+  "implied_dilution": {
+    "name": "implied_dilution",
+    "formula": "round_size / post_money_valuation",
+    "inputs": [],
+    "source_ids": [],
+    "result": null,
+    "result_display": null,
+    "unit": null,
+    "assumptions": [],
+    "interpretation": null,
+    "status": "missing_input",
+    "error": "Cannot calculate implied dilution: none of these were found in the sources reviewed: a sourced round size; a sourced post-money valuation."
+  }
+}

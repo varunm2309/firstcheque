@@ -52,6 +52,20 @@ def monthly_revenue_earlier() -> Fact:
 
 
 @pytest.fixture
+def annual_revenue() -> Fact:
+    """The FY-total equivalent of monthly_revenue_current, pre-annualised --
+    representing a company that discloses annual revenue directly (an
+    NBFC's FY total income, say) rather than a monthly figure."""
+    return fact(
+        label="annual_revenue",
+        value=30_012_000,
+        currency=Currency.INR,
+        metric_kind=MetricKind.REVENUE,
+        period=Period.ANNUAL,
+    )
+
+
+@pytest.fixture
 def valuation() -> Fact:
     return fact(
         label="valuation",
@@ -102,8 +116,8 @@ def test_annualised_revenue_run_rate_rejects_gmv():
 # ---------------------------------------------------------------------------
 
 
-def test_valuation_multiple(valuation, monthly_revenue_current):
-    result = claims.valuation_multiple(valuation, monthly_revenue_current)
+def test_valuation_multiple(valuation, annual_revenue):
+    result = claims.valuation_multiple(valuation, annual_revenue)
     assert result.status == ClaimCheckStatus.OK
     # exact calculation, not the rounded display value
     assert result.result == pytest.approx(200_000_000 / 30_012_000)
@@ -111,18 +125,18 @@ def test_valuation_multiple(valuation, monthly_revenue_current):
     assert "heuristic" in result.interpretation.lower()
 
 
-def test_valuation_multiple_currency_mismatch(monthly_revenue_current):
+def test_valuation_multiple_currency_mismatch(annual_revenue):
     usd_valuation = fact(
         label="valuation", value=25_000_000, currency=Currency.USD, metric_kind=MetricKind.VALUATION
     )
-    result = claims.valuation_multiple(usd_valuation, monthly_revenue_current)
+    result = claims.valuation_multiple(usd_valuation, annual_revenue)
     assert result.status == ClaimCheckStatus.CURRENCY_MISMATCH
     assert result.result is None
 
 
 def test_valuation_multiple_zero_revenue(valuation):
     zero_revenue = fact(
-        label="monthly_revenue_current", value=0, currency=Currency.INR, metric_kind=MetricKind.REVENUE
+        label="annual_revenue", value=0, currency=Currency.INR, metric_kind=MetricKind.REVENUE
     )
     result = claims.valuation_multiple(valuation, zero_revenue)
     assert result.status == ClaimCheckStatus.ZERO_DENOMINATOR
@@ -177,20 +191,20 @@ def test_growth_multiple_missing_earlier(monthly_revenue_current):
 # ---------------------------------------------------------------------------
 
 
-def test_capital_efficiency(monthly_revenue_current):
+def test_capital_efficiency(annual_revenue):
     raised = fact(
         label="total_capital_raised", value=50_000_000, currency=Currency.INR, metric_kind=MetricKind.CAPITAL_RAISED
     )
-    result = claims.capital_efficiency(raised, monthly_revenue_current)
+    result = claims.capital_efficiency(raised, annual_revenue)
     assert result.status == ClaimCheckStatus.OK
     assert result.result == pytest.approx(30_012_000 / 50_000_000)
 
 
-def test_capital_efficiency_zero_raised(monthly_revenue_current):
+def test_capital_efficiency_zero_raised(annual_revenue):
     raised = fact(
         label="total_capital_raised", value=0, currency=Currency.INR, metric_kind=MetricKind.CAPITAL_RAISED
     )
-    result = claims.capital_efficiency(raised, monthly_revenue_current)
+    result = claims.capital_efficiency(raised, annual_revenue)
     assert result.status == ClaimCheckStatus.ZERO_DENOMINATOR
 
 
@@ -293,6 +307,131 @@ def test_format_inr(value, expected):
 )
 def test_format_usd(value, expected):
     assert claims.format_usd(value) == expected
+
+
+# ---------------------------------------------------------------------------
+# Period validation -- catches the class of bug where a fact's period
+# doesn't match what a formula assumes (e.g. an already-annual figure fed
+# into something expecting a monthly one, or a monthly-vs-annual growth
+# "multiple" that isn't like-for-like). Economic-meaning bugs, not just
+# arithmetic bugs.
+# ---------------------------------------------------------------------------
+
+
+def test_annualised_revenue_run_rate_rejects_annual_period():
+    annual_fact = fact(
+        label="monthly_revenue_current", value=29_000_000, currency=Currency.INR,
+        metric_kind=MetricKind.REVENUE, period=Period.ANNUAL,
+    )
+    result = claims.annualised_revenue_run_rate(annual_fact)
+    assert result.status == ClaimCheckStatus.PERIOD_MISMATCH
+    assert result.result is None
+    assert "annual" in result.error.lower() and "monthly" in result.error.lower()
+
+
+def test_annualised_revenue_run_rate_allows_unspecified_period(monthly_revenue_current):
+    # period=None (never stated) is tolerated, not blocked -- only a
+    # STATED wrong period is rejected.
+    unspecified = monthly_revenue_current.model_copy(update={"period": None})
+    result = claims.annualised_revenue_run_rate(unspecified)
+    assert result.status == ClaimCheckStatus.OK
+
+
+def test_arpu_rejects_annual_revenue():
+    annual_fact = fact(
+        label="monthly_revenue_current", value=29_000_000, currency=Currency.INR,
+        metric_kind=MetricKind.REVENUE, period=Period.ANNUAL,
+    )
+    customers = fact(label="paying_customers", value=1000, metric_kind=MetricKind.PAYING_CUSTOMERS)
+    result = claims.arpu(annual_fact, customers)
+    assert result.status == ClaimCheckStatus.PERIOD_MISMATCH
+
+
+def test_growth_multiple_rejects_mixed_periods(monthly_revenue_current):
+    annual_earlier = fact(
+        label="earlier", value=120_000_000, currency=Currency.INR,
+        metric_kind=MetricKind.REVENUE, period=Period.ANNUAL,
+    )
+    result = claims.growth_multiple(monthly_revenue_current, annual_earlier)
+    assert result.status == ClaimCheckStatus.PERIOD_MISMATCH
+    assert "annual" in result.error.lower() and "monthly" in result.error.lower()
+
+
+def test_valuation_multiple_rejects_monthly_revenue_base(valuation):
+    monthly_fact = fact(
+        label="annual_revenue", value=2_501_000, currency=Currency.INR,
+        metric_kind=MetricKind.REVENUE, period=Period.MONTHLY,
+    )
+    result = claims.valuation_multiple(valuation, monthly_fact)
+    assert result.status == ClaimCheckStatus.PERIOD_MISMATCH
+
+
+def test_capital_efficiency_rejects_monthly_revenue_base():
+    raised = fact(
+        label="total_capital_raised", value=50_000_000, currency=Currency.INR,
+        metric_kind=MetricKind.CAPITAL_RAISED,
+    )
+    monthly_fact = fact(
+        label="annual_revenue", value=2_501_000, currency=Currency.INR,
+        metric_kind=MetricKind.REVENUE, period=Period.MONTHLY,
+    )
+    result = claims.capital_efficiency(raised, monthly_fact)
+    assert result.status == ClaimCheckStatus.PERIOD_MISMATCH
+
+
+# ---------------------------------------------------------------------------
+# as_of staleness transparency -- a ratio combining two facts measured on
+# very different dates still computes, but must say so rather than reading
+# as a same-moment comparison. This is the fix for the real bug found where
+# Jar's capital-raised-per-year silently used "years since founding as of
+# today" against a capital figure measured years earlier, understating the
+# true rate by roughly 4.6x.
+# ---------------------------------------------------------------------------
+
+
+def test_valuation_multiple_flags_large_as_of_gap():
+    valuation_2022 = fact(
+        label="valuation", value=300_000_000, currency=Currency.USD,
+        metric_kind=MetricKind.VALUATION, period=Period.POINT_IN_TIME, as_of=date(2022, 8, 18),
+    )
+    revenue_2025 = fact(
+        label="annual_revenue", value=25_000_000, currency=Currency.USD,
+        metric_kind=MetricKind.REVENUE, period=Period.ANNUAL, as_of=date(2025, 3, 31),
+    )
+    result = claims.valuation_multiple(valuation_2022, revenue_2025)
+    assert result.status == ClaimCheckStatus.OK  # still computes...
+    assert any("months apart" in a for a in result.assumptions)  # ...but flags the gap
+
+
+def test_valuation_multiple_no_gap_note_when_dates_close(valuation, monthly_revenue_current):
+    close_valuation = valuation.model_copy(update={"as_of": date(2026, 6, 1)})
+    annual_revenue = fact(
+        label="annual_revenue", value=30_012_000, currency=Currency.INR,
+        metric_kind=MetricKind.REVENUE, period=Period.ANNUAL, as_of=date(2026, 6, 30),
+    )
+    result = claims.valuation_multiple(close_valuation, annual_revenue)
+    assert result.status == ClaimCheckStatus.OK
+    assert not any("months apart" in a for a in result.assumptions)
+
+
+def test_capital_raised_per_year_flags_as_of_gap_and_warns_about_today_based_years():
+    raised = fact(
+        label="total_capital_raised", value=59_100_000, currency=Currency.USD,
+        metric_kind=MetricKind.CAPITAL_RAISED, as_of=date(2022, 8, 18),
+    )
+    years_to_today = fact(
+        label="years_since_founding", value=5.21, metric_kind=MetricKind.YEARS, as_of=date(2026, 9, 17),
+    )
+    result = claims.capital_raised_per_year(raised, years_to_today)
+    assert result.status == ClaimCheckStatus.OK
+    assert any("as of the same date" in a for a in result.assumptions)
+    assert any("months apart" in a for a in result.assumptions)
+    # this is the actual bug: years-to-today against a years-ago capital
+    # figure produces a rate far below the true one.
+    understated_rate = result.result
+    correct_years = (date(2022, 8, 18) - date(2021, 7, 1)).days / 365.25
+    correct_rate = 59_100_000 / correct_years
+    assert understated_rate < correct_rate / 3  # the bug's distortion is roughly 4.6x
 
 
 def test_format_money_unknown_currency_raises(monthly_revenue_current):

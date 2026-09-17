@@ -89,6 +89,14 @@ there, figure out what's missing, and continue.
 
 ## 2. Plan targeted research
 
+Log that you're starting this stage (this feeds `workflow.html`'s event
+log -- a real, timestamped record of what actually happened, not a
+progress bar):
+
+```bash
+./.venv/Scripts/python.exe -m firstcheque.cli log-event <run_dir> --stage plan_research --executor claude --status ok --notes "<one line: what you planned to search>"
+```
+
 Plan 4-6 searches covering:
 1. Business model and customers
 2. Founders and team
@@ -131,6 +139,12 @@ they'll be reassigned) to a scratch file, then merge:
 
 This preserves IDs for anything already in the register and assigns fresh
 IDs only to genuinely new sources. Delete the scratch file afterward.
+(`merge-sources` already logs its own `collect_evidence` event for the
+python side; log your own for the research side too:)
+
+```bash
+./.venv/Scripts/python.exe -m firstcheque.cli log-event <run_dir> --stage collect_evidence --executor claude --status ok --notes "<how many sources found, any blocked fetches>"
+```
 
 ## 4. Extract a structured draft
 
@@ -179,6 +193,11 @@ Validate before moving on:
 ```
 
 Fix any schema errors or dangling citation IDs it reports.
+(`validate-memo` logs its own `extract_draft` event; log yours too:)
+
+```bash
+./.venv/Scripts/python.exe -m firstcheque.cli log-event <run_dir> --stage extract_draft --executor claude --status ok --artifacts memo.json
+```
 
 ## 5. Check citation support and conflicting claims
 
@@ -206,6 +225,12 @@ Re-save `memo.json`, then:
 This fails loudly on dangling source ids (fix those) and prints the
 citation-support rate with its denominator -- note that number, you'll
 need it when you report the summary to the user in step 8.
+(`citation-check` logs its own `citation_check` event with that rate;
+log your own judgment pass too:)
+
+```bash
+./.venv/Scripts/python.exe -m firstcheque.cli log-event <run_dir> --stage citation_check --executor claude --status ok --notes "judged support for each claim"
+```
 
 ## 6. One targeted follow-up pass
 
@@ -217,6 +242,14 @@ queries that would close the biggest gaps and run them. Merge any new
 sources (step 3's merge command) and update `memo.json` and its claims.
 Do this once -- it's a single follow-up pass, not another full research
 loop.
+
+Log whether it actually ran:
+
+```bash
+./.venv/Scripts/python.exe -m firstcheque.cli log-event <run_dir> --stage follow_up_pass --executor claude --status ok --notes "<what you chased>"
+# or, if there were no material gaps worth a follow-up pass:
+./.venv/Scripts/python.exe -m firstcheque.cli log-event <run_dir> --stage follow_up_pass --executor claude --status skipped --notes "no material gaps after citation check"
+```
 
 ## 7. Calculate financial checks in Python
 
@@ -239,9 +272,11 @@ honestly in the memo rather than treating it as a bug to route around.
 ./.venv/Scripts/python.exe -m firstcheque.cli render <run_dir>
 ```
 
-This writes `memo.md` (assembling your prose with the computed numbers and
-a footnoted source list) and, if it doesn't already exist, a blank
-`review.md` for the analyst.
+This writes `memo.md` and a self-contained `memo.html` (same content, a
+readable single-file page that opens directly in a browser with no server)
+-- assembling your prose with the computed numbers and a footnoted source
+list -- and, if it doesn't already exist, a blank `review.md` for the
+analyst.
 
 Then:
 
@@ -279,6 +314,18 @@ results and unresolved gaps against the previous run. Summarise it for the
 user in a couple of lines (e.g. "recommendation unchanged at Track;
 valuation multiple moved from 5.2x to 6.7x on the new funding round; 2 new
 sources").
+
+## 11. Regenerate the workflow viewer
+
+After finishing a run (whether or not it was an update), refresh
+`workflow.html` so it picks up this run's real event log and data:
+
+```bash
+./.venv/Scripts/python.exe -m firstcheque.cli generate-workflow-viewer
+```
+
+This is deterministic from whatever is actually saved under `memos/` --
+it does not add anything that didn't happen.
 
 ## Style
 

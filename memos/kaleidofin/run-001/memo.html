@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kaleidofin -- FirstCheque memo</title>
+<style>
+  :root {
+    --paper: #faf8f4; --ink: #1f1c18; --muted: #6b6459; --line: #e4ddd0;
+    --accent: #2f5233; --meet: #1f7a3d; --track: #b8860b; --pass: #a33a3a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 2.5rem 1.25rem 4rem; background: var(--paper); color: var(--ink);
+    font-family: Georgia, 'Iowan Old Style', 'Palatino Linotype', serif;
+    line-height: 1.55; font-size: 17px;
+  }
+  .page { max-width: 800px; margin: 0 auto; }
+  h1 { font-size: 2rem; margin-bottom: 0.15em; }
+  h1 + .website { font-family: 'Courier New', monospace; font-size: 0.85rem; }
+  h1 + .website a { color: var(--accent); }
+  .oneliner { font-style: italic; color: var(--muted); margin: 0.6em 0 1.4em; font-size: 1.05rem; }
+  h2 {
+    font-family: -apple-system, Helvetica, Arial, sans-serif; font-size: 0.78rem;
+    letter-spacing: 0.09em; text-transform: uppercase; color: var(--muted);
+    border-bottom: 1px solid var(--line); padding-bottom: 0.35em; margin: 2em 0 0.8em;
+  }
+  .recommendation {
+    display: flex; align-items: center; gap: 0.75rem; margin: 1em 0 0.5em;
+  }
+  .rec-pill {
+    font-family: -apple-system, Helvetica, Arial, sans-serif; font-weight: 700;
+    font-size: 0.95rem; padding: 0.3em 0.9em; border-radius: 999px; color: #fff;
+  }
+  .rec-meet { background: var(--meet); }
+  .rec-track { background: var(--track); }
+  .rec-pass { background: var(--pass); }
+  .rationale { margin: 0.6em 0 0; }
+  .snapshot-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 0.9rem; margin-top: 0.5em;
+  }
+  .snap-item { background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 0.6em 0.8em; }
+  .snap-label {
+    font-family: -apple-system, Helvetica, Arial, sans-serif; font-size: 0.72rem;
+    text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 0.2em;
+  }
+  .snap-value { font-size: 0.95rem; }
+  p { margin: 0.7em 0; }
+  ol, ul { padding-left: 1.4em; }
+  .risks li { margin-bottom: 0.9em; }
+  .mitigant { color: var(--muted); font-size: 0.93rem; margin-top: 0.2em; }
+  .muted { color: var(--muted); font-style: italic; }
+  .card { background: #fff5e6; border: 1px solid #e8d5ab; border-radius: 8px; padding: 1em 1.2em; margin-top: 0.6em; }
+  .card h2 { border: none; margin-top: 0; }
+  .card.gaps { background: #fdf3f0; border-color: #eccbc2; }
+  .citation-line {
+    font-family: -apple-system, Helvetica, Arial, sans-serif; font-size: 0.9rem; color: var(--muted);
+    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 0.9em 0; margin: 1.6em 0;
+  }
+  .check { border: 1px solid var(--line); border-radius: 8px; padding: 0.8em 1em; margin-bottom: 0.7em; background: #fff; }
+  .check-head { display: flex; justify-content: space-between; align-items: center; font-family: 'Courier New', monospace; }
+  .badge {
+    font-family: -apple-system, Helvetica, Arial, sans-serif; font-size: 0.68rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.04em; padding: 0.15em 0.6em; border-radius: 999px;
+  }
+  .status-ok { background: #e3f2e6; color: var(--meet); }
+  .status-flag { background: #f5e9e3; color: #8a4b1f; }
+  .badge-evidence { background: #eee; color: #555; margin-left: 0.4em; }
+  .formula { font-family: 'Courier New', monospace; font-size: 0.85rem; color: var(--muted); margin: 0.3em 0 0.5em; }
+  .check-result { font-size: 1.15rem; font-weight: 700; margin-bottom: 0.3em; }
+  .check-error { color: #8a4b1f; }
+  .check-line { font-size: 0.9rem; margin: 0.25em 0; }
+  ol.sources { list-style: none; padding-left: 0; }
+  ol.sources li { padding: 0.6em 0; border-bottom: 1px solid var(--line); font-size: 0.92rem; }
+  .src-id { font-family: 'Courier New', monospace; font-weight: 700; margin-right: 0.4em; }
+  a { color: var(--accent); word-break: break-word; }
+  footer {
+    margin-top: 3em; padding-top: 1em; border-top: 1px solid var(--line);
+    font-size: 0.85rem; color: var(--muted); font-style: italic; text-align: center;
+  }
+  sup a { text-decoration: none; }
+  @media print { body { background: #fff; } .card { break-inside: avoid; } .check { break-inside: avoid; } }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Kaleidofin</h1>
+  <p class="website"><a href="https://kaleidofin.com" target="_blank" rel="noopener noreferrer">https://kaleidofin.com</a></p>
+  <p class="oneliner">A Chennai-based fintech that pairs an AI-driven credit-scoring platform (ki score) with a licensed NBFC to extend formal credit to underbanked women and small businesses in India.</p>
+
+  <div class="recommendation">
+    <span class="rec-pill rec-track">Track</span>
+  </div>
+  <p class="rationale">The founding team has strong domain pedigree and the NBFC subsidiary reached standalone break-even in February 2025, but the consolidated group is still loss-making and asset quality has weakened sharply in the last reported year. Worth revisiting once the next audited year shows whether the delinquency rise was temporary and whether consolidated losses are narrowing.</p>
+
+  <h2>Snapshot</h2>
+  <div class="snapshot-grid"><div class="snap-item"><div class="snap-label">Founded</div><div class="snap-value">2017 (KPL, the holding company); its NBFC subsidiary KCPL was incorporated in March 2021 and began lending in FY23</div></div><div class="snap-item"><div class="snap-label">HQ</div><div class="snap-value">Chennai, India</div></div><div class="snap-item"><div class="snap-label">Stage</div><div class="snap-value">Growth-stage NBFC/fintech (rated CARE BBB-; not a disclosed VC funding stage)</div></div><div class="snap-item"><div class="snap-label">Total funding</div><div class="snap-value">INR 324 Cr cumulative equity raised as of the April 2025 rating report (per CARE Ratings; not independently cross-checked against USD-denominated aggregator totals, which report a materially different figure -- see unresolved gaps)</div></div><div class="snap-item"><div class="snap-label">Last round</div><div class="snap-value">EUR 5 million (~INR 49 Cr) equity infusion from IDH, Netherlands, in Q4 FY25, per CARE Ratings</div></div><div class="snap-item"><div class="snap-label">Investors</div><div class="snap-value">Rabo Partnerships (Rabobank), Michael &amp; Susan Dell Foundation, Oikocredit, Flourish Ventures, Omidyar Network, Blume Ventures, Bharat Fund, Bill &amp; Melinda Gates Foundation, IDH Farmfit Fund</div></div><div class="snap-item"><div class="snap-label">Founders</div><div class="snap-value">Sucharita Mukherjee (co-founder and CEO, KPL), Puneet Gupta (co-founder and CEO, KCPL)</div></div></div>
+
+  <h2>Business model</h2>
+  <p>Kaleidofin Private Limited (KPL) owns a data-driven credit-scoring model, ki score, built on a claimed database of 35 million customers and used to underwrite loans.<sup><a href="#src-1">1</a></sup> It monetises this in two ways: a Lending-as-a-Service layer that sells credit assessment (ki score, ki view) and customer-engagement tools to banks, MFIs and NBFCs, and a wholly owned NBFC subsidiary, Kaleidofin Capital Private Limited (KCPL), that lends directly using a branchless, partner-originated model through around 15 originator partners.<sup><a href="#src-1">1</a></sup><sup><a href="#src-2">2</a></sup> KCPL&#x27;s loan book covers agricultural, women-entrepreneur, micro-entrepreneur and small-business loans.<sup><a href="#src-1">1</a></sup> The company reports serving over 3 million users across 17 states through 50 channel partners, of whom 97% are women and about 1 million run small businesses.<sup><a href="#src-4">4</a></sup></p>
+
+  <h2>Why now</h2>
+  <p>KCPL&#x27;s NBFC arm reached standalone break-even in February 2025 after several years of scaling losses, and its assets under management grew from INR 45 Cr (March 2023) to INR 114 Cr (March 2024) to INR 140 Cr (December 2024).<sup><a href="#src-1">1</a></sup> The group raised roughly INR 156 Cr of fresh equity in FY25 across multiple tranches, lifting tangible net worth to about INR 190 Cr, and in June 2026 KCPL took on its first international impact-debt facility, a USD 5 million four-year Orange Bond-certified debenture from an IIX-backed vehicle, targeting clean-energy and financial-inclusion lending.<sup><a href="#src-1">1</a></sup><sup><a href="#src-3">3</a></sup> In May 2026 the company also closed a KES 276 million agri-finance securitisation in Kenya, its first disclosed move outside India.<sup><a href="#src-7">7</a></sup> Together these suggest a company moving from a single-market NBFC into a multi-market, diversified-funding credit-infrastructure business, though it is unclear from public sources how much management attention and capital this international push is drawing away from the core India franchise.</p>
+
+  <h2>Market and competition</h2>
+  <p>Kaleidofin operates in India&#x27;s underbanked/informal-credit segment, where its stated competition is less about other well-funded fintechs and more about informal-sector alternatives such as chit funds, jewellers and daily deposit schemes; named platform competitors mentioned by one aggregator are FinBox, TransBnk and Linedata.<sup><a href="#src-6">6</a></sup> That aggregator data was retrieved via a search-engine summary rather than a direct page fetch and should be treated as a lower-confidence, unverified secondary source pending direct confirmation.</p>
+
+  <h2>Traction and team</h2>
+  <p>On a CARE Ratings consolidated basis, KPL&#x27;s total income was INR 12 Cr in FY23, INR 29 Cr in FY24, and INR 32 Cr for the first nine months of FY25 (unaudited), against consolidated losses of INR 23 Cr, INR 32 Cr and INR 19 Cr respectively over the same periods.<sup><a href="#src-1">1</a></sup> On a standalone basis, the NBFC subsidiary KCPL was profitable in FY23 and FY24 (small PAT in both years) and reached break-even in February 2025.<sup><a href="#src-1">1</a></sup> Asset quality has weakened: 90+ day delinquency rose from 0.02% as of March 2024 to 1.89% as of December 2024, which CARE Ratings attributes partly to broader stress in the microfinance sector rather than to Kaleidofin specifically.<sup><a href="#src-1">1</a></sup> The leadership team has unusually deep domain pedigree for this segment: CEO Sucharita Mukherjee previously ran credit-derivatives structuring at Morgan Stanley and Deutsche Bank and was founding CEO of Northern Arc Capital, while KCPL CEO Puneet Gupta co-founded the IFMR group (now Northern Arc Capital / Dvara Group) and was on ICICI Bank&#x27;s founding microfinance team.<sup><a href="#src-1">1</a></sup></p>
+
+  <h2>Three risks and possible mitigants</h2>
+  <ol class="risks"><li><strong>The consolidated group is still loss-making (INR 32 Cr loss in FY24, INR 19 Cr loss in 9MFY25) even though the NBFC subsidiary reached standalone break-even.</strong><div class="mitigant">Possible mitigant / question to press on: Ask management for a consolidated (not just KCPL-standalone) path-to-breakeven timeline and what specifically at the KPL parent level (the ki score licensing business, corporate overhead) is driving the gap.</div></li><li><strong>90+ day delinquency jumped from 0.02% to 1.89% in nine months, which CARE Ratings partly attributes to sector-wide microfinance stress rather than company-specific issues, but the distinction matters a great deal for underwriting quality.</strong><div class="mitigant">Possible mitigant / question to press on: Ask for the most recent delinquency data (post-December 2024), a breakdown by originator partner and geography, and how much of the increase is attributable to ki score-accepted vs ki score-rejected-but-disbursed loans.</div></li><li><strong>The lending business depends on roughly 15 third-party originator partners under a branchless model with first-loss default guarantees (FLDG); concentration in any one partner, or a partner&#x27;s own financial stress, could disrupt the loan book.</strong><div class="mitigant">Possible mitigant / question to press on: Ask for partner-level concentration (percentage of AUM from the top 3-5 partners) and FLDG coverage terms.</div></li><li><strong>No public source disclosed a company valuation, monthly revenue, or a cap table, so standard venture-style metrics (revenue multiple, ARPU, dilution) cannot be computed from public information alone.</strong><div class="mitigant">Possible mitigant / question to press on: Request the current cap table, most recent monthly MIS, and the valuation basis of the FY25 equity tranches directly from the company.</div></li></ol>
+
+  <h2>What would change this recommendation</h2>
+  <p>A move toward Meet would need at least one more audited period showing consolidated (not just standalone-subsidiary) profitability alongside continued AUM growth, plus evidence that the delinquency spike identified in the CARE Ratings report has stabilised or reversed. A move toward Pass would follow from a further deterioration in asset quality, a stalled or down-round equity raise, or evidence that the international expansion is diverting capital from a struggling core business.</p>
+
+  <h2>Five questions for the founders</h2>
+  <ol><li>What is the plan and timeline to reach consolidated (KPL-level, not just KCPL-standalone) profitability?</li><li>What specifically drove 90+ day delinquency from 0.02% in March 2024 to 1.89% in December 2024, and has it stabilised since?</li><li>What is the current post-money valuation and cap table following the roughly INR 156 crore raised across FY25?</li><li>What share of AUM comes from your largest originator partners, and what happens to the loan book if one of them exits?</li><li>How does the Kenya agri-securitisation and the new IIX debt facility fit into capital allocation priorities relative to the core India underbanked-lending business?</li></ol>
+
+  <h2>RDI relevance</h2>
+  <ul><li><strong>Digital economy, including digital agriculture</strong>: Kaleidofin&#x27;s ki score/ki view stack is digital financial-inclusion infrastructure, and its Kenya work is explicitly a digital agri-finance securitisation program. This is a plausible but not confident fit: the RDI Scheme is aimed at private-sector R&amp;D in sunrise/strategic domains, and Kaleidofin&#x27;s activity here looks more like applied fintech infrastructure deployment than frontier R&amp;D, so eligibility should not be assumed from this theme match alone.</li></ul><p class="muted">Theme alignment is not confirmation of RDI funding eligibility.</p>
+
+  <section class="card gaps"><h2>Unresolved gaps</h2><ul><li>Total capital raised to date is reported very differently across sources: ~INR 324 crore per CARE Ratings (April 2025, audited-adjacent) vs a commonly cited ~USD 42-47 million across aggregator sites (Tracxn/Crunchbase-style, exact figures not independently fetched). These were not reconciled here because doing so would require an unsourced FX-rate and timing assumption; a direct question to the company is the more reliable path.</li><li>No public source found in this research pass disclosed a company-level (KPL) valuation for any funding round, which blocks computing a valuation multiple or implied dilution.</li><li>No monthly revenue disclosure was found; all revenue figures available are annual or multi-quarter (FY23/FY24/9MFY25 total income), so the standard monthly-based checks (annualised revenue run rate, ARPU, month-over-month growth multiple) could not be computed and correctly show as missing input rather than being estimated.</li><li>The Business Standard article on the $13.8M funding round (source 5) could not be directly fetched (HTTP 403); its details rest on a search-engine summary rather than the article&#x27;s own text, and the competitor list (source 6, Tracxn) is similarly a search-summary of an aggregator rather than a direct fetch. Both should be treated as lower confidence and re-verified before relying on them.</li><li>No negative news, regulatory action, customer complaints or litigation involving Kaleidofin specifically were found in this research pass; this is an absence of evidence in the searches run, not confirmation that none exists.</li></ul></section>
+
+  <div class="citation-line">Citation support: 83% (10/12) of tracked factual claims are backed by a
+  saved, matching passage. This measures whether a cited source's saved text supports the claim -- it is
+  not independent fact verification.</div>
+
+  <h2>Appendix: numerical checks</h2>
+  <div class="check"><div class="check-head"><code>annualised_revenue_run_rate</code><span class="badge status-flag">missing_input</span></div><div class="formula">monthly_revenue * 12</div><div class="check-error">Cannot calculate annualised revenue run rate: no a sourced monthly revenue figure was found in the sources reviewed.</div></div><div class="check"><div class="check-head"><code>valuation_multiple</code><span class="badge status-flag">missing_input</span></div><div class="formula">valuation / annual_revenue</div><div class="check-error">Cannot calculate valuation multiple: no a sourced valuation was found in the sources reviewed.</div></div><div class="check"><div class="check-head"><code>arpu</code><span class="badge status-flag">missing_input</span></div><div class="formula">monthly_revenue / paying_customers</div><div class="check-error">Cannot calculate ARPU: none of these were found in the sources reviewed: a sourced monthly revenue figure; a sourced paying-customer count.</div></div><div class="check"><div class="check-head"><code>growth_multiple</code><span class="badge status-flag">missing_input</span></div><div class="formula">current_monthly_revenue / earlier_monthly_revenue</div><div class="check-error">Cannot calculate growth multiple: none of these were found in the sources reviewed: a sourced current-period revenue figure; a sourced earlier-period revenue figure.</div></div><div class="check"><div class="check-head"><code>capital_efficiency</code><span class="badge status-ok">ok</span></div><div class="formula">annual_revenue / total_capital_raised</div><div class="check-result">0.09x annual revenue per unit raised</div><div class="check-line"><strong>Inputs:</strong> annual_revenue=290000000.0 INR; total_capital_raised=3240000000.0 INR</div><div class="check-line"><strong>Assumption:</strong> Revenue base: KPL consolidated total income, FY24 (audited, most recent full fiscal year), per CARE Ratings. (as_of=2024-03-31). This is a rough efficiency signal, not a margin or burn-multiple calculation.</div><div class="check-line"><strong>Assumption:</strong> total_capital_raised is as of 2025-04-25 and annual_revenue is as of 2024-03-31 -- roughly 13 months apart. This ratio mixes those two moments rather than comparing figures from the same date.</div><div class="check-line"><strong>Sources:</strong> <a href="#src-1">[1]</a></div></div><div class="check"><div class="check-head"><code>capital_raised_per_year</code><span class="badge status-ok">ok</span></div><div class="formula">total_capital_raised / years_since_founding</div><div class="check-result">INR 41.65 Cr per year</div><div class="check-line"><strong>Inputs:</strong> total_capital_raised=3240000000.0 INR (as_of=2025-04-25); years_since_founding=7.78 (as_of=2025-04-25)</div><div class="check-line"><strong>Assumption:</strong> years_since_founding should be measured as of the same date as total_capital_raised (not as of today), or this rate understates/overstates how fast the company actually raised money.</div><div class="check-line"><strong>Sources:</strong> <a href="#src-1">[1]</a></div></div><div class="check"><div class="check-head"><code>implied_dilution</code><span class="badge status-flag">missing_input</span></div><div class="formula">round_size / post_money_valuation</div><div class="check-error">Cannot calculate implied dilution: none of these were found in the sources reviewed: a sourced round size; a sourced post-money valuation.</div></div>
+
+  <h2>Appendix: sources</h2>
+  <ol class="sources"><li id="src-1"><span class="src-id">[1]</span> <span class="badge badge-evidence">full_text</span><div><strong>Kaleidofin Capital Private Limited - Press Release (CARE BBB-; Stable assigned to Rs 100 crore bank facility)</strong><br>CARE Ratings Ltd (CareEdge) &middot; 2025-04-25<br><a href="https://www.careratings.com/upload/CompanyFiles/PR/202504130450_Kaleidofin_Capital_Private_Limited.pdf" target="_blank" rel="noopener noreferrer">https://www.careratings.com/upload/CompanyFiles/PR/202504130450_Kaleidofin_Capital_Private_Limited.pdf</a> (accessed 2026-09-17)</div></li><li id="src-2"><span class="src-id">[2]</span> <span class="badge badge-evidence">full_text</span><div><strong>Kaleidofin -- about us</strong><br>Kaleidofin<br><a href="https://kaleidofin.com/about-us/" target="_blank" rel="noopener noreferrer">https://kaleidofin.com/about-us/</a> (accessed 2026-09-17)</div></li><li id="src-3"><span class="src-id">[3]</span> <span class="badge badge-evidence">full_text</span><div><strong>Kaleidofin Capital Secures $5 Million Debt Facility from Women&#x27;s Livelihood Bond</strong><br>Elets BFSI &middot; 2026-06-24<br><a href="https://bfsi.eletsonline.com/kaleidofin-capital-secures-5-million-debt-facility-from-womens-livelihood-bond/" target="_blank" rel="noopener noreferrer">https://bfsi.eletsonline.com/kaleidofin-capital-secures-5-million-debt-facility-from-womens-livelihood-bond/</a> (accessed 2026-09-17)</div></li><li id="src-4"><span class="src-id">[4]</span> <span class="badge badge-evidence">full_text</span><div><strong>Kaleidofin: Fintech platform for the women, by the women</strong><br>Forbes India<br><a href="https://www.forbesindia.com/article/startups/kaleidofin-fintech-platform-for-the-women-by-the-women/89893/1" target="_blank" rel="noopener noreferrer">https://www.forbesindia.com/article/startups/kaleidofin-fintech-platform-for-the-women-by-the-women/89893/1</a> (accessed 2026-09-17)</div></li><li id="src-5"><span class="src-id">[5]</span> <span class="badge badge-evidence">search_snippet</span><div><strong>Chennai-based fintech Kaleidofin raises $13.8 million in new funding round</strong><br>Business Standard &middot; 2024-09-18<br><a href="https://www.business-standard.com/companies/news/chennai-based-fintech-kaleidofin-raises-13-8-million-in-new-funding-round-124091800588_1.html" target="_blank" rel="noopener noreferrer">https://www.business-standard.com/companies/news/chennai-based-fintech-kaleidofin-raises-13-8-million-in-new-funding-round-124091800588_1.html</a> (accessed 2026-09-17)</div></li><li id="src-6"><span class="src-id">[6]</span> <span class="badge badge-evidence">search_snippet</span><div><strong>Kaleidofin - Company Profile, Team, Funding, Competitors &amp; Financials</strong><br>Tracxn<br><a href="https://tracxn.com/d/companies/kaleidofin/__K3QuNsbE1E1mG6vdHty76Xl4-ovl4uB2ugn7Y86ejOU" target="_blank" rel="noopener noreferrer">https://tracxn.com/d/companies/kaleidofin/__K3QuNsbE1E1mG6vdHty76Xl4-ovl4uB2ugn7Y86ejOU</a> (accessed 2026-09-17)</div></li><li id="src-7"><span class="src-id">[7]</span> <span class="badge badge-evidence">full_text</span><div><strong>Kaleidofin closes KES 276 million agri-finance securitisation in Kenya</strong><br>PaySpace Magazine &middot; 2026-05-07<br><a href="https://payspacemagazine.com/news/kaleidofin-closes-kes-276-million-agri-finance-securitisation-in-kenya/" target="_blank" rel="noopener noreferrer">https://payspacemagazine.com/news/kaleidofin-closes-kes-276-million-agri-finance-securitisation-in-kenya/</a> (accessed 2026-09-17)</div></li></ol>
+
+  <footer>AI-drafted from public sources, numbers re-checked in code. Verify before relying on it.</footer>
+</div>
+</body>
+</html>
