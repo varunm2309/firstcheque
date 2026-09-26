@@ -21,6 +21,16 @@ Python package under `src/firstcheque/` does the arithmetic, validation
 and file bookkeeping. Never do the reverse -- don't let Python guess at a
 number, and don't compute a ratio yourself instead of calling the CLI.
 
+**The company researched is always the one the user asks for here, in
+this session -- never a default, a suggestion, or a company picked to
+demonstrate the workflow.** `workflow.html` (the visual viewer) only ever
+displays runs that already exist on disk under `memos/`; it has no way to
+start research and does not claim to. If you ever build or demo this
+workflow without a specific company request, say explicitly that you
+picked it yourself for demonstration purposes (see `run.json`'s
+`execution_notes` for how the two existing example runs in this repo are
+labelled) -- never let an example run look like it was user-requested.
+
 All commands below assume the project venv. Prefix every Python call with:
 
 ```bash
@@ -34,7 +44,14 @@ back to doing arithmetic yourself.)
 
 ## 0. Parse arguments
 
-`$ARGUMENTS` is one of:
+If `$ARGUMENTS` is empty (the user ran `/company-brief` with nothing after
+it), do not guess or pick a company yourself -- ask:
+
+> Which company would you like to research? Share its name and, if
+> possible, its website.
+
+Wait for their answer before doing anything else. Otherwise, `$ARGUMENTS`
+is one of:
 - A single company name or website -> research that one company.
 - `--context <path>` appended -> read that file first. Treat its contents
   as **a claim to verify, not a fact**. If it asserts numbers or a

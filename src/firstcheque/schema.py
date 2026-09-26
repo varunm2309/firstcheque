@@ -41,6 +41,7 @@ class Currency(str, Enum):
 
 class Period(str, Enum):
     MONTHLY = "monthly"
+    QUARTERLY = "quarterly"  # most public companies report this, not monthly or annual
     ANNUAL = "annual"
     POINT_IN_TIME = "point_in_time"  # e.g. valuation, headcount, a snapshot figure
 

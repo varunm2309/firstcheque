@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Swiggy -- FirstCheque memo</title>
+<style>
+  :root {
+    --paper: #faf8f4; --ink: #1f1c18; --muted: #6b6459; --line: #e4ddd0;
+    --accent: #2f5233; --meet: #1f7a3d; --track: #b8860b; --pass: #a33a3a;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 2.5rem 1.25rem 4rem; background: var(--paper); color: var(--ink);
+    font-family: Georgia, 'Iowan Old Style', 'Palatino Linotype', serif;
+    line-height: 1.55; font-size: 17px;
+  }
+  .page { max-width: 800px; margin: 0 auto; }
+  h1 { font-size: 2rem; margin-bottom: 0.15em; }
+  h1 + .website { font-family: 'Courier New', monospace; font-size: 0.85rem; }
+  h1 + .website a { color: var(--accent); }
+  .oneliner { font-style: italic; color: var(--muted); margin: 0.6em 0 1.4em; font-size: 1.05rem; }
+  h2 {
+    font-family: -apple-system, Helvetica, Arial, sans-serif; font-size: 0.78rem;
+    letter-spacing: 0.09em; text-transform: uppercase; color: var(--muted);
+    border-bottom: 1px solid var(--line); padding-bottom: 0.35em; margin: 2em 0 0.8em;
+  }
+  .recommendation {
+    display: flex; align-items: center; gap: 0.75rem; margin: 1em 0 0.5em;
+  }
+  .rec-pill {
+    font-family: -apple-system, Helvetica, Arial, sans-serif; font-weight: 700;
+    font-size: 0.95rem; padding: 0.3em 0.9em; border-radius: 999px; color: #fff;
+  }
+  .rec-meet { background: var(--meet); }
+  .rec-track { background: var(--track); }
+  .rec-pass { background: var(--pass); }
+  .rationale { margin: 0.6em 0 0; }
+  .snapshot-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 0.9rem; margin-top: 0.5em;
+  }
+  .snap-item { background: #fff; border: 1px solid var(--line); border-radius: 8px; padding: 0.6em 0.8em; }
+  .snap-label {
+    font-family: -apple-system, Helvetica, Arial, sans-serif; font-size: 0.72rem;
+    text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 0.2em;
+  }
+  .snap-value { font-size: 0.95rem; }
+  p { margin: 0.7em 0; }
+  ol, ul { padding-left: 1.4em; }
+  .risks li { margin-bottom: 0.9em; }
+  .mitigant { color: var(--muted); font-size: 0.93rem; margin-top: 0.2em; }
+  .muted { color: var(--muted); font-style: italic; }
+  .card { background: #fff5e6; border: 1px solid #e8d5ab; border-radius: 8px; padding: 1em 1.2em; margin-top: 0.6em; }
+  .card h2 { border: none; margin-top: 0; }
+  .card.gaps { background: #fdf3f0; border-color: #eccbc2; }
+  .citation-line {
+    font-family: -apple-system, Helvetica, Arial, sans-serif; font-size: 0.9rem; color: var(--muted);
+    border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 0.9em 0; margin: 1.6em 0;
+  }
+  .check { border: 1px solid var(--line); border-radius: 8px; padding: 0.8em 1em; margin-bottom: 0.7em; background: #fff; }
+  .check-head { display: flex; justify-content: space-between; align-items: center; font-family: 'Courier New', monospace; }
+  .badge {
+    font-family: -apple-system, Helvetica, Arial, sans-serif; font-size: 0.68rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.04em; padding: 0.15em 0.6em; border-radius: 999px;
+  }
+  .status-ok { background: #e3f2e6; color: var(--meet); }
+  .status-flag { background: #f5e9e3; color: #8a4b1f; }
+  .badge-evidence { background: #eee; color: #555; margin-left: 0.4em; }
+  .formula { font-family: 'Courier New', monospace; font-size: 0.85rem; color: var(--muted); margin: 0.3em 0 0.5em; }
+  .check-result { font-size: 1.15rem; font-weight: 700; margin-bottom: 0.3em; }
+  .check-error { color: #8a4b1f; }
+  .check-line { font-size: 0.9rem; margin: 0.25em 0; }
+  ol.sources { list-style: none; padding-left: 0; }
+  ol.sources li { padding: 0.6em 0; border-bottom: 1px solid var(--line); font-size: 0.92rem; }
+  .src-id { font-family: 'Courier New', monospace; font-weight: 700; margin-right: 0.4em; }
+  a { color: var(--accent); word-break: break-word; }
+  footer {
+    margin-top: 3em; padding-top: 1em; border-top: 1px solid var(--line);
+    font-size: 0.85rem; color: var(--muted); font-style: italic; text-align: center;
+  }
+  sup a { text-decoration: none; }
+  @media print { body { background: #fff; } .card { break-inside: avoid; } .check { break-inside: avoid; } }
+</style>
+</head>
+<body>
+<div class="page">
+  <h1>Swiggy</h1>
+  <p class="website"><a href="https://www.swiggy.com" target="_blank" rel="noopener noreferrer">https://www.swiggy.com</a></p>
+  <p class="oneliner">A publicly listed Bengaluru food-delivery platform (Swiggy Food) that also runs Instamart, India&#x27;s #3 quick-commerce player by GMV share, plus a smaller Out-of-Home dining business.</p>
+
+  <div class="recommendation">
+    <span class="rec-pill rec-track">Track</span>
+  </div>
+  <p class="rationale">Swiggy is already public, so this is a growth-equity/public-markets judgment, not an early-stage one: food delivery is genuinely improving toward profitability while Instamart&#x27;s expansion keeps consolidated losses wide, and a fresh INR 10,000 crore raise approved barely a year after IPO signals the cash burn isn&#x27;t resolved yet. Worth tracking quarter to quarter rather than a binary call, especially through the pending CCI antitrust matter and the priced terms of the new raise.</p>
+
+  <h2>Snapshot</h2>
+  <div class="snapshot-grid"><div class="snap-item"><div class="snap-label">Founded</div><div class="snap-value">Incorporated 26 December 2013; food delivery service launched August 2014</div></div><div class="snap-item"><div class="snap-label">HQ</div><div class="snap-value">Bengaluru, Karnataka, India</div></div><div class="snap-item"><div class="snap-label">Stage</div><div class="snap-value">Publicly listed (NSE/BSE, IPO&#x27;d November 2024); not a private VC-stage company</div></div><div class="snap-item"><div class="snap-label">Total funding</div><div class="snap-value">IPO raised INR 11,327 Cr (INR 4,499 Cr fresh issue + INR 6,828 Cr offer-for-sale) in November 2024; board approved a further INR 10,000 Cr raise via QIP in November 2025 (priced terms not yet confirmed as of this research)</div></div><div class="snap-item"><div class="snap-label">Last round</div><div class="snap-value">INR 10,000 Cr QIP, board-approved 2025-11-07, shareholder-approved 2025-12-08 (final pricing/terms not yet disclosed in sources reviewed)</div></div><div class="snap-item"><div class="snap-label">Investors</div><div class="snap-value">Accel, Prosus, SoftBank Vision Fund, public shareholders (post-IPO)</div></div><div class="snap-item"><div class="snap-label">Founders</div><div class="snap-value">Sriharsha Majety (co-founder, MD &amp; Group CEO), Nandan Reddy (co-founder), Rahul Jaimini (co-founder)</div></div></div>
+
+  <h2>Business model</h2>
+  <p>Swiggy operates three consumer-facing businesses under one platform: food delivery (its original and most profitable segment), Instamart (quick-commerce grocery/general merchandise delivered from dark stores), and a smaller Out-of-Home dining/events business.<sup><a href="#src-6">6</a></sup><sup><a href="#src-1">1</a></sup> It reports results by segment using company-defined &#x27;Adjusted Revenue&#x27; and &#x27;Adjusted EBITDA&#x27; metrics (which exclude items like other income, exceptional items, share-based payment expense and IND AS 116 lease rentals) alongside statutory &#x27;revenue from operations&#x27; -- these are two different, non-interchangeable measures, and this memo is explicit about which one each figure below uses.<sup><a href="#src-1">1</a></sup><sup><a href="#src-3">3</a></sup> As of 2025 it serves 700+ cities for food delivery and 100 cities for quick-commerce.<sup><a href="#src-6">6</a></sup></p>
+
+  <h2>Why now</h2>
+  <p>Food delivery&#x27;s Adjusted EBITDA margin has been climbing (1.6% to 2.8% of GOV over the last five quarters) while Instamart&#x27;s Adjusted EBITDA loss narrowed from INR 896 Cr to INR 849 Cr quarter over quarter, even as its GOV grew 108% year over year on the back of a fast-scaling darkstore network (1,102 stores across 128 cities as of Q2 FY26).<sup><a href="#src-1">1</a></sup> At the same time, the board approved a fresh INR 10,000 crore capital raise in November 2025, a little over a year after the IPO, explicitly to fund continued food-delivery and Instamart growth -- meaning the company&#x27;s own board judged existing capital insufficient for its growth plans.<sup><a href="#src-4">4</a></sup> Group-level Adjusted EBITDA is still solidly negative (INR -695 Cr in the latest quarter), so &#x27;why now&#x27; cuts both ways: real operating improvement in the core business, but confirmation that Instamart&#x27;s capital needs are not yet behind it.</p>
+
+  <h2>Market and competition</h2>
+  <p>India&#x27;s quick-commerce category is a three-way race: by one set of 2026 industry estimates, Blinkit holds roughly 45-50% of category GMV, with Swiggy Instamart and Zepto each around 20-25%.<sup><a href="#src-9">9</a></sup> That estimate was retrieved via a search-engine summary of aggregator/industry-analysis content rather than a single verifiable primary source, so it should be treated as directional market colour, not a confirmed market-share figure. In food delivery, Swiggy&#x27;s main direct competitor is Zomato (Eternal), which has also faced the same CCI antitrust scrutiny described below.<sup><a href="#src-5">5</a></sup><sup><a href="#src-7">7</a></sup></p>
+
+  <h2>Traction and team</h2>
+  <p>On a statutory &#x27;revenue from operations&#x27; basis, Swiggy&#x27;s consolidated revenue grew from INR 3,222 Cr in Q1 FY25 to INR 4,961 Cr in Q1 FY26 (54% YoY), while the consolidated net loss more than doubled from INR 611 Cr to INR 1,197 Cr over the same period, before narrowing slightly to INR 1,092 Cr in Q2 FY26.<sup><a href="#src-3">3</a></sup><sup><a href="#src-9">9</a></sup> For the full FY25 year, revenue was INR 15,227 Cr (up 35% YoY) against a net loss of INR 3,116.7 Cr, wider than FY24&#x27;s INR 2,350 Cr loss.<sup><a href="#src-8">8</a></sup> On the company&#x27;s own &#x27;Adjusted&#x27; basis, Platform Average Monthly Transacting Users grew 34% YoY to 22.9 million in Q2 FY26, with 35.7% of them now using more than one Swiggy service.<sup><a href="#src-1">1</a></sup> The founding team -- Sriharsha Majety, Nandan Reddy and Rahul Jaimini -- has run the company since its 2013 incorporation through unicorn status (2018) to IPO (2024), giving it an unusually long, continuous founder tenure for a company this size.<sup><a href="#src-6">6</a></sup></p>
+
+  <h2>Three risks and possible mitigants</h2>
+  <ol class="risks"><li><strong>Consolidated losses remain large on a full-year basis (FY25 loss of INR 3,117 crore, wider than FY24&#x27;s INR 2,350 crore) even though food delivery&#x27;s own margins are improving, because Instamart&#x27;s expansion keeps consuming capital.</strong><div class="mitigant">Possible mitigant / question to press on: Ask for a consolidated (not segment-only) path-to-breakeven timeline tied explicitly to how the new INR 10,000 crore raise will be deployed.</div></li><li><strong>Swiggy Instamart appears to be a distant player in the quick-commerce category it is betting heavily on, per lower-confidence third-party estimates (Blinkit roughly double Instamart&#x27;s share).</strong><div class="mitigant">Possible mitigant / question to press on: Ask management for their own internal view of category share trends and unit economics versus Blinkit specifically, rather than relying on outside aggregator estimates.</div></li><li><strong>An unresolved CCI antitrust matter (a finding of anticompetitive exclusivity practices, currently stayed by the Karnataka High Court pending an April 2026 hearing) creates legal and regulatory uncertainty around core restaurant-partner economics.</strong><div class="mitigant">Possible mitigant / question to press on: Ask for management&#x27;s contingency plan if the stay is lifted or the underlying finding is ultimately upheld.</div></li><li><strong>The INR 10,000 crore QIP fundraise, approved barely a year after IPO, will dilute existing shareholders at a scale not yet disclosed -- final pricing and terms were not available in the sources reviewed for this run.</strong><div class="mitigant">Possible mitigant / question to press on: Ask for the final QIP pricing and resulting dilution percentage once the raise is priced, and re-run this memo&#x27;s implied-dilution check against that real figure rather than the IPO-only one shown here.</div></li></ol>
+
+  <h2>What would change this recommendation</h2>
+  <p>A more positive view would need at least one further quarter showing group-level (not just food-delivery) Adjusted EBITDA improving meaningfully toward breakeven, and a resolved or narrowed CCI matter. A more negative view would follow from Instamart&#x27;s category share continuing to fall further behind Blinkit and Zepto despite the fresh capital, or an adverse CCI ruling that forces changes to restaurant-partner exclusivity terms.</p>
+
+  <h2>Five questions for the founders</h2>
+  <ol><li>What is the timeline and specific milestones for Instamart to reach the profitability trajectory food delivery has shown, and how does the new INR 10,000 crore raise change that timeline?</li><li>How does Swiggy&#x27;s own internal quick-commerce GMV/order-share trend compare with Blinkit and Zepto, given how widely third-party estimates vary?</li><li>What is the current status and worst-case financial exposure from the CCI antitrust matter now stayed at the Karnataka High Court?</li><li>What terms and dilution resulted from the INR 10,000 crore QIP once it was priced?</li><li>How much of the incremental capital raised is earmarked for Instamart dark-store expansion versus food delivery or new bets, such as the B2B delivery model mentioned in the Q2 FY26 shareholder letter?</li></ol>
+
+  <h2>RDI relevance</h2>
+  <p class="muted">No RDI theme assigned. Theme alignment, where present, is not confirmation of funding eligibility.</p>
+
+  <section class="card gaps"><h2>Unresolved gaps</h2><ul><li>The board-approved INR 10,000 crore QIP (approved 2025-11-07, shareholder-approved 2025-12-08) was not yet priced as of this research; its final size, price and resulting dilution are unknown and were deliberately excluded from the implied_dilution calculation, which instead uses the already-closed IPO round.</li><li>Swiggy reports two non-interchangeable revenue measures -- statutory &#x27;revenue from operations&#x27; and company-defined &#x27;Adjusted Revenue&#x27; (which excludes certain items and differs materially in magnitude, e.g. INR 4,961 Cr statutory vs INR 5,911 Cr Adjusted for a similar period). This memo uses the statutory figure throughout for the numerical checks and is explicit about that choice; conflating the two would overstate or understate growth depending on which pair is compared.</li><li>Total cumulative capital raised across Swiggy&#x27;s full history (seed through IPO) could not be pinned to one reliable, directly-sourced figure -- aggregator sites report a range (e.g. ~$3.6B across many rounds) that was not independently verified, so capital_efficiency and capital_raised_per_year were not computed rather than using an unreliable total.</li><li>The quick-commerce market-share figures (source 9) and the November 2024 CCI breach finding (source 7) both rest on search-engine summaries rather than directly fetched primary text; a direct fetch of the underlying Reuters/CCI documents was attempted but timed out, and a Business Standard fetch for the FY25 annual results (source 8) was blocked (HTTP-level access issue). A follow-up pass fetched Swiggy&#x27;s own Q4 FY25 press release directly (source 10, now full_text) and it independently corroborated the Q4 FY25 Adjusted EBITDA figure, but the release itself only reports non-GAAP GOV/Adjusted-EBITDA metrics, not the statutory full-year revenue/net-loss figures -- so source 8 remains the only source for those two specific numbers and should still be treated as lower confidence pending direct confirmation.</li><li>No RDI theme was assigned: Swiggy is a mature, publicly listed consumer logistics/marketplace platform, not the kind of private-sector R&amp;D-heavy sunrise-sector business the RDI Scheme targets, so forcing a theme match here would overstate the fit.</li></ul></section>
+
+  <div class="citation-line">Citation support: 77% (10/13) of tracked factual claims are backed by a
+  saved, matching passage. This measures whether a cited source's saved text supports the claim -- it is
+  not independent fact verification.</div>
+
+  <h2>Appendix: numerical checks</h2>
+  <div class="check"><div class="check-head"><code>annualised_revenue_run_rate</code><span class="badge status-flag">period_mismatch</span></div><div class="formula">monthly_revenue * 12</div><div class="check-error">Cannot calculate annualised revenue run rate: &#x27;monthly_revenue_current&#x27; covers a quarterly period, but this calculation needs a monthly figure. Using it anyway would misstate the rate (e.g. treating an already-annual number as if it still needed annualising).</div></div><div class="check"><div class="check-head"><code>valuation_multiple</code><span class="badge status-ok">ok</span></div><div class="formula">valuation / annual_revenue</div><div class="check-result">6.6x</div><div class="check-line"><strong>Inputs:</strong> valuation=1001480000000.0 INR; annual_revenue=152270000000.0 INR</div><div class="check-line"><strong>Interpretation (heuristic):</strong> Below the commonly cited 10x-30x growth-stage revenue-multiple heuristic band. Heuristic only, not a valuation opinion.</div><div class="check-line"><strong>Assumption:</strong> Revenue base: Consolidated revenue from operations, FY25 (year ended 31 March 2025), statutory basis, per press reporting. (as_of=2025-03-31).</div><div class="check-line"><strong>Sources:</strong> <a href="#src-2">[2]</a> <a href="#src-8">[8]</a></div></div><div class="check"><div class="check-head"><code>arpu</code><span class="badge status-flag">missing_input</span></div><div class="formula">monthly_revenue / paying_customers</div><div class="check-error">Cannot calculate ARPU: no sourced paying-customer count was found in the sources reviewed.</div></div><div class="check"><div class="check-head"><code>growth_multiple</code><span class="badge status-ok">ok</span></div><div class="formula">current_monthly_revenue / earlier_monthly_revenue</div><div class="check-result">1.5x</div><div class="check-line"><strong>Inputs:</strong> current=49610000000.0 INR (as_of=2025-06-30); earlier=32220000000.0 INR (as_of=2024-06-30)</div><div class="check-line"><strong>Assumption:</strong> Compares two reported points in time; not a compounded annual growth rate.</div><div class="check-line"><strong>Assumption:</strong> Period: 2024-06-30 to 2025-06-30.</div><div class="check-line"><strong>Sources:</strong> <a href="#src-3">[3]</a></div></div><div class="check"><div class="check-head"><code>capital_efficiency</code><span class="badge status-flag">missing_input</span></div><div class="formula">annual_revenue / total_capital_raised</div><div class="check-error">Cannot calculate capital efficiency: no sourced total-capital-raised figure was found in the sources reviewed.</div></div><div class="check"><div class="check-head"><code>capital_raised_per_year</code><span class="badge status-flag">missing_input</span></div><div class="formula">total_capital_raised / years_since_founding</div><div class="check-error">Cannot calculate capital raised per year: none of these were found in the sources reviewed: a sourced total-capital-raised figure; a sourced founding date/age.</div></div><div class="check"><div class="check-head"><code>implied_dilution</code><span class="badge status-ok">ok</span></div><div class="formula">round_size / post_money_valuation</div><div class="check-result">4.5%</div><div class="check-line"><strong>Inputs:</strong> round_size=44990000000.0 INR; post_money_valuation=1001480000000.0 INR</div><div class="check-line"><strong>Interpretation (heuristic):</strong> Below the 25.00% heuristic dilution threshold.</div><div class="check-line"><strong>Assumption:</strong> Assumes the stated valuation is POST-money and already includes this round. If a source reports a pre-money valuation instead, this result will be wrong and should not be used.</div><div class="check-line"><strong>Sources:</strong> <a href="#src-2">[2]</a></div></div>
+
+  <h2>Appendix: sources</h2>
+  <ol class="sources"><li id="src-1"><span class="src-id">[1]</span> <span class="badge badge-evidence">full_text</span><div><strong>Swiggy Q2 FY2026 Shareholders&#x27; Letter</strong><br>Swiggy Limited (official investor relations) &middot; 2025-10-30<br><a href="https://www.swiggy.com/corporate/wp-content/uploads/2025/10/Q2-FY2026-Shareholder-letter.pdf" target="_blank" rel="noopener noreferrer">https://www.swiggy.com/corporate/wp-content/uploads/2025/10/Q2-FY2026-Shareholder-letter.pdf</a> (accessed 2026-09-17)</div></li><li id="src-2"><span class="src-id">[2]</span> <span class="badge badge-evidence">full_text</span><div><strong>Swiggy Share Price Highlights: Stock settles 10.5% higher after listing at 7.7% premium on NSE, m-cap crosses Rs 1 lakh crore</strong><br>Upstox &middot; 2024-11-13<br><a href="https://upstox.com/news/market-news/ipo/swiggy-ipo-listing-live-shares-list-premium-discount-share-price-today-nse-bse-news-2024-check-list-of-things-to-consider/article-128134/" target="_blank" rel="noopener noreferrer">https://upstox.com/news/market-news/ipo/swiggy-ipo-listing-live-shares-list-premium-discount-share-price-today-nse-bse-news-2024-check-list-of-things-to-consider/article-128134/</a> (accessed 2026-09-17)</div></li><li id="src-3"><span class="src-id">[3]</span> <span class="badge badge-evidence">full_text</span><div><strong>Swiggy Q1 FY26 Loss Widens to Rs 1,197 Cr; Revenue Up 54%</strong><br>HDFC Sky &middot; 2025-07-31<br><a href="https://hdfcsky.com/news/swiggy-reports-q1fy26-loss-of-rs-1197-cr-despite-54-percent-revenue-growth-quick" target="_blank" rel="noopener noreferrer">https://hdfcsky.com/news/swiggy-reports-q1fy26-loss-of-rs-1197-cr-despite-54-percent-revenue-growth-quick</a> (accessed 2026-09-17)</div></li><li id="src-4"><span class="src-id">[4]</span> <span class="badge badge-evidence">full_text</span><div><strong>Swiggy board approves Rs 10,000 Cr fundraise</strong><br>Entrackr &middot; 2025-11-07<br><a href="https://entrackr.com/news/swiggy-board-approves-rs-10000-cr-fundraise-10636718" target="_blank" rel="noopener noreferrer">https://entrackr.com/news/swiggy-board-approves-rs-10000-cr-fundraise-10636718</a> (accessed 2026-09-17)</div></li><li id="src-5"><span class="src-id">[5]</span> <span class="badge badge-evidence">full_text</span><div><strong>Orders under Section 26(1) of the Act: CCI Directs Investigation Against Zomato and Swiggy</strong><br>AZB &amp; Partners (law firm legal update) &middot; 2022-04-04<br><a href="https://www.azbpartners.com/bank/orders-under-section-261-of-the-act-cci-directs-investigation-against-zomato-and-swiggy/" target="_blank" rel="noopener noreferrer">https://www.azbpartners.com/bank/orders-under-section-261-of-the-act-cci-directs-investigation-against-zomato-and-swiggy/</a> (accessed 2026-09-17)</div></li><li id="src-6"><span class="src-id">[6]</span> <span class="badge badge-evidence">full_text</span><div><strong>Swiggy (Wikipedia)</strong><br>Wikipedia<br><a href="https://en.wikipedia.org/wiki/Swiggy" target="_blank" rel="noopener noreferrer">https://en.wikipedia.org/wiki/Swiggy</a> (accessed 2026-09-17)</div></li><li id="src-7"><span class="src-id">[7]</span> <span class="badge badge-evidence">search_snippet</span><div><strong>Exclusive-India Finds Zomato, Swiggy Food Delivery Businesses Breached Antitrust Laws, Documents Show</strong><br>Reuters (via U.S. News) &middot; 2024-11-08<br><a href="https://www.usnews.com/news/technology/articles/2024-11-08/exclusive-indias-probe-finds-zomato-swiggy-breached-antitrust-laws-documents-show" target="_blank" rel="noopener noreferrer">https://www.usnews.com/news/technology/articles/2024-11-08/exclusive-indias-probe-finds-zomato-swiggy-breached-antitrust-laws-documents-show</a> (accessed 2026-09-17)</div></li><li id="src-8"><span class="src-id">[8]</span> <span class="badge badge-evidence">search_snippet</span><div><strong>Swiggy FY25 annual results: full-year revenue and loss</strong><br>Business Standard (via search-engine summary) &middot; 2025-05-09<br><a href="https://www.business-standard.com/amp/companies/quarterly-results/swiggy-q4-loss-widens-to-rs-1081-crore-revenue-rises-on-instamart-push-125050901306_1.html" target="_blank" rel="noopener noreferrer">https://www.business-standard.com/amp/companies/quarterly-results/swiggy-q4-loss-widens-to-rs-1081-crore-revenue-rises-on-instamart-push-125050901306_1.html</a> (accessed 2026-09-17)</div></li><li id="src-9"><span class="src-id">[9]</span> <span class="badge badge-evidence">search_snippet</span><div><strong>India quick-commerce market share: Blinkit, Zepto, Swiggy Instamart (2026 industry estimates)</strong><br>Industry aggregator/analysis (via search-engine summary)<br><a href="https://marketmindsacademy.com/quick-commerce-war-in-india-blinkit-vs-zepto-vs-swiggy-instamart-case-study-2026/" target="_blank" rel="noopener noreferrer">https://marketmindsacademy.com/quick-commerce-war-in-india-blinkit-vs-zepto-vs-swiggy-instamart-case-study-2026/</a> (accessed 2026-09-17)</div></li><li id="src-10"><span class="src-id">[10]</span> <span class="badge badge-evidence">full_text</span><div><strong>Swiggy Q4 FY25 Results Press Release</strong><br>Swiggy Limited (official investor relations) &middot; 2025-05-09<br><a href="https://www.swiggy.com/corporate/wp-content/uploads/2025/05/Press-release_Q4FY25-results.pdf" target="_blank" rel="noopener noreferrer">https://www.swiggy.com/corporate/wp-content/uploads/2025/05/Press-release_Q4FY25-results.pdf</a> (accessed 2026-09-17)</div></li></ol>
+
+  <footer>AI-drafted from public sources, numbers re-checked in code. Verify before relying on it.</footer>
+</div>
+</body>
+</html>

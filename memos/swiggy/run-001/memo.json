@@ -1,0 +1,174 @@
+{
+  "company": "Swiggy",
+  "website": "https://www.swiggy.com",
+  "one_liner": "A publicly listed Bengaluru food-delivery platform (Swiggy Food) that also runs Instamart, India's #3 quick-commerce player by GMV share, plus a smaller Out-of-Home dining business.",
+  "recommendation": "Track",
+  "recommendation_rationale": "Swiggy is already public, so this is a growth-equity/public-markets judgment, not an early-stage one: food delivery is genuinely improving toward profitability while Instamart's expansion keeps consolidated losses wide, and a fresh INR 10,000 crore raise approved barely a year after IPO signals the cash burn isn't resolved yet. Worth tracking quarter to quarter rather than a binary call, especially through the pending CCI antitrust matter and the priced terms of the new raise.",
+  "snapshot": {
+    "founded": "Incorporated 26 December 2013; food delivery service launched August 2014",
+    "hq": "Bengaluru, Karnataka, India",
+    "stage": "Publicly listed (NSE/BSE, IPO'd November 2024); not a private VC-stage company",
+    "total_funding_display": "IPO raised INR 11,327 Cr (INR 4,499 Cr fresh issue + INR 6,828 Cr offer-for-sale) in November 2024; board approved a further INR 10,000 Cr raise via QIP in November 2025 (priced terms not yet confirmed as of this research)",
+    "last_round": "INR 10,000 Cr QIP, board-approved 2025-11-07, shareholder-approved 2025-12-08 (final pricing/terms not yet disclosed in sources reviewed)",
+    "investors": ["Accel", "Prosus", "SoftBank Vision Fund", "public shareholders (post-IPO)"],
+    "founders": ["Sriharsha Majety (co-founder, MD & Group CEO)", "Nandan Reddy (co-founder)", "Rahul Jaimini (co-founder)"]
+  },
+  "business_model": "Swiggy operates three consumer-facing businesses under one platform: food delivery (its original and most profitable segment), Instamart (quick-commerce grocery/general merchandise delivered from dark stores), and a smaller Out-of-Home dining/events business.[^6][^1] It reports results by segment using company-defined 'Adjusted Revenue' and 'Adjusted EBITDA' metrics (which exclude items like other income, exceptional items, share-based payment expense and IND AS 116 lease rentals) alongside statutory 'revenue from operations' -- these are two different, non-interchangeable measures, and this memo is explicit about which one each figure below uses.[^1][^3] As of 2025 it serves 700+ cities for food delivery and 100 cities for quick-commerce.[^6]",
+  "why_now": "Food delivery's Adjusted EBITDA margin has been climbing (1.6% to 2.8% of GOV over the last five quarters) while Instamart's Adjusted EBITDA loss narrowed from INR 896 Cr to INR 849 Cr quarter over quarter, even as its GOV grew 108% year over year on the back of a fast-scaling darkstore network (1,102 stores across 128 cities as of Q2 FY26).[^1] At the same time, the board approved a fresh INR 10,000 crore capital raise in November 2025, a little over a year after the IPO, explicitly to fund continued food-delivery and Instamart growth -- meaning the company's own board judged existing capital insufficient for its growth plans.[^4] Group-level Adjusted EBITDA is still solidly negative (INR -695 Cr in the latest quarter), so 'why now' cuts both ways: real operating improvement in the core business, but confirmation that Instamart's capital needs are not yet behind it.",
+  "market_and_competition": "India's quick-commerce category is a three-way race: by one set of 2026 industry estimates, Blinkit holds roughly 45-50% of category GMV, with Swiggy Instamart and Zepto each around 20-25%.[^9] That estimate was retrieved via a search-engine summary of aggregator/industry-analysis content rather than a single verifiable primary source, so it should be treated as directional market colour, not a confirmed market-share figure. In food delivery, Swiggy's main direct competitor is Zomato (Eternal), which has also faced the same CCI antitrust scrutiny described below.[^5][^7]",
+  "traction_and_team": "On a statutory 'revenue from operations' basis, Swiggy's consolidated revenue grew from INR 3,222 Cr in Q1 FY25 to INR 4,961 Cr in Q1 FY26 (54% YoY), while the consolidated net loss more than doubled from INR 611 Cr to INR 1,197 Cr over the same period, before narrowing slightly to INR 1,092 Cr in Q2 FY26.[^3][^9] For the full FY25 year, revenue was INR 15,227 Cr (up 35% YoY) against a net loss of INR 3,116.7 Cr, wider than FY24's INR 2,350 Cr loss.[^8] On the company's own 'Adjusted' basis, Platform Average Monthly Transacting Users grew 34% YoY to 22.9 million in Q2 FY26, with 35.7% of them now using more than one Swiggy service.[^1] The founding team -- Sriharsha Majety, Nandan Reddy and Rahul Jaimini -- has run the company since its 2013 incorporation through unicorn status (2018) to IPO (2024), giving it an unusually long, continuous founder tenure for a company this size.[^6]",
+  "numbers": {
+    "monthly_revenue_current": {
+      "label": "monthly_revenue_current",
+      "value": 49610000000,
+      "currency": "INR",
+      "metric_kind": "revenue",
+      "period": "quarterly",
+      "definition": "Consolidated revenue from operations, Q1 FY26 (quarter ended 30 June 2025), statutory basis.",
+      "as_of": "2025-06-30",
+      "source_ids": [3]
+    },
+    "monthly_revenue_earlier": {
+      "label": "monthly_revenue_earlier",
+      "value": 32220000000,
+      "currency": "INR",
+      "metric_kind": "revenue",
+      "period": "quarterly",
+      "definition": "Consolidated revenue from operations, Q1 FY25 (quarter ended 30 June 2024), statutory basis -- same field definition as the current-period figure, one year earlier.",
+      "as_of": "2024-06-30",
+      "source_ids": [3]
+    },
+    "valuation": {
+      "label": "valuation",
+      "value": 1001480000000,
+      "currency": "INR",
+      "metric_kind": "valuation",
+      "period": "point_in_time",
+      "definition": "Market capitalisation on IPO listing day (13 November 2024), per Upstox. This is the listing-day value, not a current live market cap -- Swiggy is publicly traded and its market cap moves daily; a current figure would need a fresh source, not this one.",
+      "as_of": "2024-11-13",
+      "source_ids": [2]
+    },
+    "annual_revenue": {
+      "label": "annual_revenue",
+      "value": 152270000000,
+      "currency": "INR",
+      "metric_kind": "revenue",
+      "period": "annual",
+      "definition": "Consolidated revenue from operations, FY25 (year ended 31 March 2025), statutory basis, per press reporting.",
+      "as_of": "2025-03-31",
+      "source_ids": [8]
+    },
+    "latest_round_size": {
+      "label": "latest_round_size",
+      "value": 44990000000,
+      "currency": "INR",
+      "metric_kind": "round_size",
+      "period": "point_in_time",
+      "definition": "IPO fresh-issue (primary) portion only, excluding the offer-for-sale (secondary) portion, since OFS does not dilute existing shareholders.",
+      "as_of": "2024-11-13",
+      "source_ids": [2]
+    },
+    "post_money_valuation": {
+      "label": "post_money_valuation",
+      "value": 1001480000000,
+      "currency": "INR",
+      "metric_kind": "valuation",
+      "period": "point_in_time",
+      "definition": "Listing-day market capitalisation, treated as the post-money reference point for the IPO's primary tranche (it already reflects the post-issuance share count).",
+      "as_of": "2024-11-13",
+      "source_ids": [2]
+    },
+    "extra": {
+      "fy25_full_year_net_loss": {
+        "label": "fy25_full_year_net_loss",
+        "value": 31167000000,
+        "currency": "INR",
+        "metric_kind": "other",
+        "period": "annual",
+        "definition": "Consolidated net loss, FY25 (year ended 31 March 2025), per press reporting.",
+        "as_of": "2025-03-31",
+        "source_ids": [8]
+      },
+      "fy24_full_year_net_loss": {
+        "label": "fy24_full_year_net_loss",
+        "value": 23500000000,
+        "currency": "INR",
+        "metric_kind": "other",
+        "period": "annual",
+        "definition": "Consolidated net loss, FY24 (year ended 31 March 2024), per press reporting, for comparison.",
+        "as_of": "2024-03-31",
+        "source_ids": [8]
+      },
+      "consolidated_adjusted_ebitda_q2fy26": {
+        "label": "consolidated_adjusted_ebitda_q2fy26",
+        "value": -6950000000,
+        "currency": "INR",
+        "metric_kind": "other",
+        "period": "quarterly",
+        "definition": "Consolidated Adjusted EBITDA (company-defined, non-statutory), Q2 FY26, per the official shareholder letter.",
+        "as_of": "2025-09-30",
+        "source_ids": [1]
+      },
+      "planned_qip_fundraise": {
+        "label": "planned_qip_fundraise",
+        "value": 100000000000,
+        "currency": "INR",
+        "metric_kind": "round_size",
+        "period": "point_in_time",
+        "definition": "Board-approved ceiling for a new QIP/equity raise (up to this amount), approved 2025-11-07. Not yet priced/finalised as of this research, so not used in implied_dilution -- that check uses the already-closed IPO round instead.",
+        "as_of": "2025-11-07",
+        "source_ids": [4]
+      }
+    }
+  },
+  "claims": [
+    {"id": "c1", "text": "Swiggy's Q2 FY26 Consolidated Adjusted EBITDA loss was INR 695 crore, improving INR 118 crore quarter-on-quarter.", "section": "why_now", "source_ids": [1], "supported": true},
+    {"id": "c2", "text": "Instamart's GOV grew 107.6% year-on-year to INR 7,022 crore in Q2 FY26, with 1,102 darkstores across 128 cities.", "section": "why_now", "source_ids": [1], "supported": true},
+    {"id": "c3", "text": "Food delivery's Adjusted EBITDA margin rose to 2.8% of GOV in Q2 FY26, up from 1.6% five quarters earlier.", "section": "why_now", "source_ids": [1], "supported": true},
+    {"id": "c4", "text": "Swiggy's board approved raising up to INR 10,000 crore via QIP on 7 November 2025 to fund food delivery and Instamart growth.", "section": "why_now", "source_ids": [4], "supported": true},
+    {"id": "c5", "text": "Swiggy's consolidated revenue from operations grew from INR 3,222 crore (Q1 FY25) to INR 4,961 crore (Q1 FY26), a 54% YoY increase, while net loss grew from INR 611 crore to INR 1,197 crore.", "section": "traction_and_team", "source_ids": [3], "supported": true},
+    {"id": "c6", "text": "Swiggy's FY25 full-year revenue was INR 15,227 crore (up 35% YoY) with a net loss of INR 3,116.7 crore, versus a INR 2,350 crore loss in FY24.", "section": "traction_and_team", "source_ids": [8], "supported": false},
+    {"id": "c7", "text": "Swiggy Instamart holds roughly 20-25% of India's quick-commerce GMV, versus Blinkit's 45-50%.", "section": "market_and_competition", "source_ids": [9], "supported": false},
+    {"id": "c8", "text": "The CCI's investigation arm found that Swiggy and Zomato breached competition law through exclusivity arrangements with restaurant partners, and Karnataka High Court has stayed the proceedings against Swiggy pending an April 2026 hearing.", "section": "market_and_competition", "source_ids": [7], "supported": false},
+    {"id": "c9", "text": "The CCI directed a formal investigation into Zomato and Swiggy on 4 April 2022 under Section 26(1) of the Competition Act, following a complaint by the National Restaurant Association of India.", "section": "market_and_competition", "source_ids": [5], "supported": true},
+    {"id": "c10", "text": "Swiggy was incorporated on 26 December 2013 by Sriharsha Majety, Nandan Reddy and Rahul Jaimini, and launched food delivery in August 2014.", "section": "traction_and_team", "source_ids": [6], "supported": true},
+    {"id": "c11", "text": "Swiggy's IPO listed at INR 420 on NSE (7.69% premium to the INR 390 issue price) on 13 November 2024, with market capitalisation crossing INR 1,00,000 crore on listing day.", "section": "snapshot", "source_ids": [2], "supported": true},
+    {"id": "c12", "text": "Platform Average Monthly Transacting Users grew 34% YoY to 22.9 million in Q2 FY26, with 35.7% using more than one Swiggy service.", "section": "traction_and_team", "source_ids": [1], "supported": true},
+    {"id": "c13", "text": "Swiggy's Q4 FY25 consolidated Adjusted EBITDA loss was INR 732 crore, independently confirmed by both the official Q4 FY25 press release and the Q2 FY26 shareholder letter's historical table.", "section": "traction_and_team", "source_ids": [1, 10], "supported": true}
+  ],
+  "risks": [
+    {
+      "risk": "Consolidated losses remain large on a full-year basis (FY25 loss of INR 3,117 crore, wider than FY24's INR 2,350 crore) even though food delivery's own margins are improving, because Instamart's expansion keeps consuming capital.",
+      "mitigant": "Ask for a consolidated (not segment-only) path-to-breakeven timeline tied explicitly to how the new INR 10,000 crore raise will be deployed."
+    },
+    {
+      "risk": "Swiggy Instamart appears to be a distant player in the quick-commerce category it is betting heavily on, per lower-confidence third-party estimates (Blinkit roughly double Instamart's share).",
+      "mitigant": "Ask management for their own internal view of category share trends and unit economics versus Blinkit specifically, rather than relying on outside aggregator estimates."
+    },
+    {
+      "risk": "An unresolved CCI antitrust matter (a finding of anticompetitive exclusivity practices, currently stayed by the Karnataka High Court pending an April 2026 hearing) creates legal and regulatory uncertainty around core restaurant-partner economics.",
+      "mitigant": "Ask for management's contingency plan if the stay is lifted or the underlying finding is ultimately upheld."
+    },
+    {
+      "risk": "The INR 10,000 crore QIP fundraise, approved barely a year after IPO, will dilute existing shareholders at a scale not yet disclosed -- final pricing and terms were not available in the sources reviewed for this run.",
+      "mitigant": "Ask for the final QIP pricing and resulting dilution percentage once the raise is priced, and re-run this memo's implied-dilution check against that real figure rather than the IPO-only one shown here."
+    }
+  ],
+  "what_would_change_recommendation": "A more positive view would need at least one further quarter showing group-level (not just food-delivery) Adjusted EBITDA improving meaningfully toward breakeven, and a resolved or narrowed CCI matter. A more negative view would follow from Instamart's category share continuing to fall further behind Blinkit and Zepto despite the fresh capital, or an adverse CCI ruling that forces changes to restaurant-partner exclusivity terms.",
+  "founder_questions": [
+    "What is the timeline and specific milestones for Instamart to reach the profitability trajectory food delivery has shown, and how does the new INR 10,000 crore raise change that timeline?",
+    "How does Swiggy's own internal quick-commerce GMV/order-share trend compare with Blinkit and Zepto, given how widely third-party estimates vary?",
+    "What is the current status and worst-case financial exposure from the CCI antitrust matter now stayed at the Karnataka High Court?",
+    "What terms and dilution resulted from the INR 10,000 crore QIP once it was priced?",
+    "How much of the incremental capital raised is earmarked for Instamart dark-store expansion versus food delivery or new bets, such as the B2B delivery model mentioned in the Q2 FY26 shareholder letter?"
+  ],
+  "rdi_fits": [],
+  "unresolved_gaps": [
+    "The board-approved INR 10,000 crore QIP (approved 2025-11-07, shareholder-approved 2025-12-08) was not yet priced as of this research; its final size, price and resulting dilution are unknown and were deliberately excluded from the implied_dilution calculation, which instead uses the already-closed IPO round.",
+    "Swiggy reports two non-interchangeable revenue measures -- statutory 'revenue from operations' and company-defined 'Adjusted Revenue' (which excludes certain items and differs materially in magnitude, e.g. INR 4,961 Cr statutory vs INR 5,911 Cr Adjusted for a similar period). This memo uses the statutory figure throughout for the numerical checks and is explicit about that choice; conflating the two would overstate or understate growth depending on which pair is compared.",
+    "Total cumulative capital raised across Swiggy's full history (seed through IPO) could not be pinned to one reliable, directly-sourced figure -- aggregator sites report a range (e.g. ~$3.6B across many rounds) that was not independently verified, so capital_efficiency and capital_raised_per_year were not computed rather than using an unreliable total.",
+    "The quick-commerce market-share figures (source 9) and the November 2024 CCI breach finding (source 7) both rest on search-engine summaries rather than directly fetched primary text; a direct fetch of the underlying Reuters/CCI documents was attempted but timed out, and a Business Standard fetch for the FY25 annual results (source 8) was blocked (HTTP-level access issue). A follow-up pass fetched Swiggy's own Q4 FY25 press release directly (source 10, now full_text) and it independently corroborated the Q4 FY25 Adjusted EBITDA figure, but the release itself only reports non-GAAP GOV/Adjusted-EBITDA metrics, not the statutory full-year revenue/net-loss figures -- so source 8 remains the only source for those two specific numbers and should still be treated as lower confidence pending direct confirmation.",
+    "No RDI theme was assigned: Swiggy is a mature, publicly listed consumer logistics/marketplace platform, not the kind of private-sector R&D-heavy sunrise-sector business the RDI Scheme targets, so forcing a theme match here would overstate the fit."
+  ],
+  "generated_at": "2026-09-17T18:20:00"
+}

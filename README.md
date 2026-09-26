@@ -83,19 +83,28 @@ company name
 ```
 
 ```mermaid
-flowchart LR
-    A[Company Input]:::human --> B[Identify / Start Run]:::joint
-    B --> C[Plan Targeted Research]:::claude
-    C --> D[Collect and Save Evidence]:::joint
-    D --> E[Structured Extraction]:::joint
-    E --> F[Citation-Support Check]:::joint
-    F -- if gaps found --> G[Follow-Up Pass]:::claude
-    F -- if no gaps --> H[Python Claim Checks]:::python
+flowchart TD
+    subgraph Research
+        A[Company Input]:::human --> B[Identify / Start Run]:::joint
+        B --> C[Plan Targeted Research]:::claude
+        C --> D[Collect and Save Evidence]:::joint
+    end
+    subgraph "Evidence Checks"
+        E[Structured Extraction]:::joint --> F[Citation-Support Check]:::joint
+    end
+    subgraph Analysis
+        G[Follow-Up Pass]:::claude --> H[Python Claim Checks]:::python
+    end
+    subgraph "Analyst Review"
+        I[Render Memo]:::python --> J[Analyst Review]:::human
+        J -. next run, same company .-> K[Compare With Previous Run]:::python
+    end
+
+    D --> E
+    F -- if gaps found --> G
+    F -- if no gaps, skip follow-up --> H
     G -. re-collect evidence, once .-> D
-    G --> H
-    H --> I[Render Memo]:::python
-    I --> J[Analyst Review]:::human
-    J -. next run, same company .-> K[Compare With Previous Run]:::python
+    H --> I
 
     classDef claude fill:#eef1fb,stroke:#3a5aa8,color:#1f1c18;
     classDef python fill:#eaf5ef,stroke:#2f7a5f,color:#1f1c18;
@@ -195,6 +204,30 @@ an exchange rate rather than compute a multiple anyway.
 All arithmetic is done with `Decimal`, keeping full precision; rounding
 only happens in the display strings (`format_inr`/`format_usd`).
 
+## Known bugs found and fixed by auditing the two example runs
+
+Before adding the viewer's visual polish, the two example runs were
+audited against their own economic meaning, not just checked for whether
+the arithmetic executed. Two real bugs turned up:
+
+1. `capital_raised_per_year` measured "years since founding" to *today*
+   instead of to the same date the capital-raised figure was measured as
+   of, silently pairing an old numerator with an inflated denominator.
+   This understated the true rate by about 18% for Kaleidofin and about
+   4.6x for Jar (whose early fundraising pace looked like USD 11.3M/year
+   instead of the correct ~USD 52.3M/year). Fixed in both the underlying
+   data and the formula, which now also emits a staleness note whenever
+   two inputs to the same ratio are measured more than ~6 months apart
+   (`claims.py::_as_of_gap_note`).
+2. `finalize-run` was overwriting `run.json`'s `created_at` with the
+   current time on every call, which would have made a later
+   Python-only recomputation look like the original research happened
+   then. `created_at` is now set once and preserved; a separate
+   `updated_at` tracks re-runs.
+
+Both are covered by regression tests (`tests/test_claims.py`,
+`tests/test_cli.py`) so they can't silently reappear.
+
 ## Limitations
 
 - **This runs inside a Claude Code session and a Claude subscription's
@@ -227,6 +260,17 @@ only happens in the display strings (`format_inr`/`format_usd`).
   (checked via full-disk filename search), so everything here was built
   independently from the formulas, thresholds and schema described
   directly in the brief, not ported from existing code.
+- **`workflow.html` was verified by two methods, not one.** Its
+  functionality (run switching, node clicks, the copy-command fallback,
+  console-error checks) was tested by serving the file over a temporary
+  local static server, because the assistant's own browser-automation
+  tool cannot script-interact with `file://` pages at all (confirmed
+  directly: it refuses read/click/eval calls on a local-file tab). The
+  file was then also opened for real via `file://` and handed off for a
+  human click-through, since that is the actual way anyone will use it.
+  Nothing in the page depends on being served (no `fetch`, no XHR, no
+  relative-path assumptions that differ between `file://` and `http://`),
+  but this gap between "tested" and "opened" is worth knowing about.
 
 ## How I review and override the draft
 
@@ -325,34 +369,58 @@ Regenerate it any time (deterministic from whatever is currently saved):
 ./.venv/Scripts/python -m firstcheque.cli generate-workflow-viewer
 ```
 
-Open it directly from disk in Chrome or Edge. It has two views:
+Open it directly from disk in Chrome or Edge. It has four areas:
 
-- **Workflow**: the node-and-connector diagram above, colour-coded by who
-  executes each stage (Claude Code / Python / you), with the conditional
-  follow-up-pass loop and the previous-run comparison branch drawn as
-  dashed edges. Click any node to see, in a side panel: what it does, who
-  runs it, the real implementation file/skill step, its inputs/outputs and
-  limitations, and -- for whichever run is selected in the dropdown --
-  real evidence from that run (an actual claim and its saved passage for
-  the citation-check node; an actual formula, inputs and result for the
-  claim-checks node; a real event-log entry with a real timestamp, or
-  "not recorded" if that stage predates event logging for that run).
-- **Run details**: a plain data view of one selected run -- recommendation,
-  citation-support rate, every claim check, every source (with working
-  links), the full event log, and review status ("Awaiting review" unless
-  a completed `review.md` actually exists).
+- **Header**: the selected company, its website, a "Saved research" label
+  (and a "Saved example" label specifically for the two demo runs -- see
+  below), the run selector, when it was researched vs. last recomputed,
+  and an "Open memo" button.
+- **Company selection**: "View saved research" lists every company with a
+  saved run, clickable; "Research another company" is a text box that
+  builds the exact `/company-brief <name>` command and a Copy button --
+  the page states plainly that you paste this into a Claude Code session
+  yourself, since a static HTML file cannot launch a subscription-backed
+  agent. The copy button has a real fallback: if the browser denies
+  clipboard access (common on a `file://` origin), the command is still
+  sitting in a plain, selectable text field.
+- **Workflow canvas**: the node diagram above, grouped into the same four
+  lanes as the README diagram (Research / Evidence Checks / Analysis /
+  Analyst Review), with a subtle executor label and a separate, real
+  status dot per node -- who runs a stage and what actually happened last
+  time are shown as two different things, not conflated. Click a node for
+  a detail panel: plain-English description, inputs/outputs, the real
+  implementation pointer, actual evidence (a real claim and its saved
+  passage for citation checks; a real formula with labelled inputs, units,
+  periods and sources for claim checks), the recorded status, artifact
+  links, and the practical limitation.
+- **Research quality summary**: citation support (with its numerator and
+  denominator), material missing information, unresolved gaps and
+  conflicting figures, and human review status -- reported as four
+  separate figures, deliberately never combined into one confidence or
+  investment score.
 
-This is powered by a real, append-only event log
-(`memos/<slug>/run-*/events.jsonl`, one line per stage transition, written
-by `storage.py::append_event`): Python's own stages log themselves
-automatically, and the skill instructs Claude to log its own stages too
-(`cli.py log-event`). A run created before this existed simply has no
-events for its earlier stages -- the viewer shows "not recorded" rather
-than guessing, which is exactly what you'll see if you open the Kaleidofin
-or Jar runs in this repo today: the Python-side stages (re-run once this
-feature was added) show real logged events, and the Claude-side research
-stages for those same runs correctly show "not recorded", because they
-happened before event logging existed.
+Six states are shown distinctly everywhere (never collapsed into a
+generic error look): Completed, Failed, Not recorded, Insufficient data,
+Not applicable, and Awaiting review. This is powered by a real,
+append-only event log (`memos/<slug>/run-*/events.jsonl`, one line per
+stage transition, written by `storage.py::append_event`): Python's own
+stages log themselves automatically, and the skill instructs Claude to
+log its own stages too (`cli.py log-event`). A run created before this
+existed simply has no events for its earlier stages -- the viewer shows
+"Not recorded" rather than guessing, and a recomputation's timestamp is
+never presented as evidence that research happened then (event notes say
+so explicitly, e.g. "Structural check + rate calculation only -- the
+supported/unsupported judgment ... was made by Claude when it wrote
+memo.json, not at this timestamp").
+
+**This tool never picks a company for you.** Both saved example runs
+exist because Claude selected them itself to demonstrate the workflow,
+not because they were requested -- their `run.json` `execution_notes`
+say so explicitly ("First real demo run", "Second real demo company"),
+which is exactly how the viewer knows to label them "Saved example."
+Every other run defaults to a neutral "Saved research" label -- this
+project makes no automatic claim that a run was or wasn't user-requested
+either way.
 
 ## Real example runs in this repo
 

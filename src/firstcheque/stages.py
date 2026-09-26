@@ -26,9 +26,13 @@ from typing import Optional
 from pydantic import BaseModel
 
 
+STAGE_GROUPS = ["Research", "Evidence Checks", "Analysis", "Analyst Review"]
+
+
 class Stage(BaseModel):
     id: str
     label: str
+    group: str  # one of STAGE_GROUPS
     executors: list[str]  # subset of "claude", "python", "human"
     description: str
     implementation: str
@@ -41,6 +45,7 @@ class Stage(BaseModel):
 STAGES: list[Stage] = [
     Stage(
         id="company_input",
+        group="Research",
         label="Company Input",
         executors=["human"],
         description=(
@@ -56,6 +61,7 @@ STAGES: list[Stage] = [
     ),
     Stage(
         id="start_run",
+        group="Research",
         label="Identify / Start Run",
         executors=["claude", "python"],
         description=(
@@ -71,6 +77,7 @@ STAGES: list[Stage] = [
     ),
     Stage(
         id="plan_research",
+        group="Research",
         label="Plan Targeted Research",
         executors=["claude"],
         description=(
@@ -84,6 +91,7 @@ STAGES: list[Stage] = [
     ),
     Stage(
         id="collect_evidence",
+        group="Research",
         label="Collect & Save Evidence",
         executors=["claude", "python"],
         description=(
@@ -101,6 +109,7 @@ STAGES: list[Stage] = [
     ),
     Stage(
         id="extract_draft",
+        group="Evidence Checks",
         label="Structured Extraction",
         executors=["claude", "python"],
         description=(
@@ -118,6 +127,7 @@ STAGES: list[Stage] = [
     ),
     Stage(
         id="citation_check",
+        group="Evidence Checks",
         label="Citation-Support Check",
         executors=["claude", "python"],
         description=(
@@ -136,6 +146,7 @@ STAGES: list[Stage] = [
     ),
     Stage(
         id="follow_up_pass",
+        group="Analysis",
         label="Targeted Follow-Up Pass",
         executors=["claude"],
         description=(
@@ -152,6 +163,7 @@ STAGES: list[Stage] = [
     ),
     Stage(
         id="compute_claims",
+        group="Analysis",
         label="Python Claim Checks",
         executors=["python"],
         description=(
@@ -168,6 +180,7 @@ STAGES: list[Stage] = [
     ),
     Stage(
         id="render_memo",
+        group="Analyst Review",
         label="Render Memo",
         executors=["python"],
         description=(
@@ -182,6 +195,7 @@ STAGES: list[Stage] = [
     ),
     Stage(
         id="human_review",
+        group="Analyst Review",
         label="Analyst Review",
         executors=["human"],
         description=(
@@ -195,6 +209,7 @@ STAGES: list[Stage] = [
     ),
     Stage(
         id="compare_previous_run",
+        group="Analyst Review",
         label="Compare With Previous Run",
         executors=["python"],
         description=(

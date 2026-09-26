@@ -1,0 +1,116 @@
+{
+  "annualised_revenue_run_rate": {
+    "name": "annualised_revenue_run_rate",
+    "formula": "monthly_revenue * 12",
+    "inputs": [],
+    "source_ids": [],
+    "result": null,
+    "result_display": null,
+    "unit": null,
+    "assumptions": [],
+    "interpretation": null,
+    "status": "period_mismatch",
+    "error": "Cannot calculate annualised revenue run rate: 'monthly_revenue_current' covers a quarterly period, but this calculation needs a monthly figure. Using it anyway would misstate the rate (e.g. treating an already-annual number as if it still needed annualising)."
+  },
+  "valuation_multiple": {
+    "name": "valuation_multiple",
+    "formula": "valuation / annual_revenue",
+    "inputs": [
+      "valuation=1001480000000.0 INR",
+      "annual_revenue=152270000000.0 INR"
+    ],
+    "source_ids": [
+      2,
+      8
+    ],
+    "result": 6.577001379129179,
+    "result_display": "6.6x",
+    "unit": "x",
+    "assumptions": [
+      "Revenue base: Consolidated revenue from operations, FY25 (year ended 31 March 2025), statutory basis, per press reporting. (as_of=2025-03-31)."
+    ],
+    "interpretation": "Below the commonly cited 10x-30x growth-stage revenue-multiple heuristic band. Heuristic only, not a valuation opinion.",
+    "status": "ok",
+    "error": null
+  },
+  "arpu": {
+    "name": "arpu",
+    "formula": "monthly_revenue / paying_customers",
+    "inputs": [],
+    "source_ids": [],
+    "result": null,
+    "result_display": null,
+    "unit": null,
+    "assumptions": [],
+    "interpretation": null,
+    "status": "missing_input",
+    "error": "Cannot calculate ARPU: no sourced paying-customer count was found in the sources reviewed."
+  },
+  "growth_multiple": {
+    "name": "growth_multiple",
+    "formula": "current_monthly_revenue / earlier_monthly_revenue",
+    "inputs": [
+      "current=49610000000.0 INR (as_of=2025-06-30)",
+      "earlier=32220000000.0 INR (as_of=2024-06-30)"
+    ],
+    "source_ids": [
+      3
+    ],
+    "result": 1.5397268777157045,
+    "result_display": "1.5x",
+    "unit": "x",
+    "assumptions": [
+      "Compares two reported points in time; not a compounded annual growth rate.",
+      "Period: 2024-06-30 to 2025-06-30."
+    ],
+    "interpretation": null,
+    "status": "ok",
+    "error": null
+  },
+  "capital_efficiency": {
+    "name": "capital_efficiency",
+    "formula": "annual_revenue / total_capital_raised",
+    "inputs": [],
+    "source_ids": [],
+    "result": null,
+    "result_display": null,
+    "unit": null,
+    "assumptions": [],
+    "interpretation": null,
+    "status": "missing_input",
+    "error": "Cannot calculate capital efficiency: no sourced total-capital-raised figure was found in the sources reviewed."
+  },
+  "capital_raised_per_year": {
+    "name": "capital_raised_per_year",
+    "formula": "total_capital_raised / years_since_founding",
+    "inputs": [],
+    "source_ids": [],
+    "result": null,
+    "result_display": null,
+    "unit": null,
+    "assumptions": [],
+    "interpretation": null,
+    "status": "missing_input",
+    "error": "Cannot calculate capital raised per year: none of these were found in the sources reviewed: a sourced total-capital-raised figure; a sourced founding date/age."
+  },
+  "implied_dilution": {
+    "name": "implied_dilution",
+    "formula": "round_size / post_money_valuation",
+    "inputs": [
+      "round_size=44990000000.0 INR",
+      "post_money_valuation=1001480000000.0 INR"
+    ],
+    "source_ids": [
+      2
+    ],
+    "result": 0.04492351320046331,
+    "result_display": "4.5%",
+    "unit": "percent",
+    "assumptions": [
+      "Assumes the stated valuation is POST-money and already includes this round. If a source reports a pre-money valuation instead, this result will be wrong and should not be used."
+    ],
+    "interpretation": "Below the 25.00% heuristic dilution threshold.",
+    "status": "ok",
+    "error": null
+  }
+}

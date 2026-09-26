@@ -201,6 +201,7 @@ def _require_metric_kind(name: str, formula: str, fact: Fact, *expected: MetricK
 
 _PERIOD_DISPLAY = {
     Period.MONTHLY: "monthly",
+    Period.QUARTERLY: "quarterly",
     Period.ANNUAL: "annual",
     Period.POINT_IN_TIME: "point-in-time",
 }

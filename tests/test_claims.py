@@ -357,6 +357,23 @@ def test_growth_multiple_rejects_mixed_periods(monthly_revenue_current):
     assert "annual" in result.error.lower() and "monthly" in result.error.lower()
 
 
+def test_growth_multiple_allows_matching_quarterly_periods():
+    # A real case this exposed: a public company (Swiggy) reports quarterly,
+    # not monthly or annual. Two matching QUARTERLY facts should still
+    # produce a clean YoY comparison rather than being blocked outright.
+    current_q1fy26 = fact(
+        label="current", value=4_961 * 10_000_000, currency=Currency.INR,  # INR 4,961 crore
+        metric_kind=MetricKind.REVENUE, period=Period.QUARTERLY, as_of=date(2025, 6, 30),
+    )
+    earlier_q1fy25 = fact(
+        label="earlier", value=3_222 * 10_000_000, currency=Currency.INR,  # INR 3,222 crore
+        metric_kind=MetricKind.REVENUE, period=Period.QUARTERLY, as_of=date(2024, 6, 30),
+    )
+    result = claims.growth_multiple(current_q1fy26, earlier_q1fy25)
+    assert result.status == ClaimCheckStatus.OK
+    assert result.result == pytest.approx(4961 / 3222)
+
+
 def test_valuation_multiple_rejects_monthly_revenue_base(valuation):
     monthly_fact = fact(
         label="annual_revenue", value=2_501_000, currency=Currency.INR,

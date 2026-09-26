@@ -1,0 +1,13 @@
+{
+  "company": "Swiggy",
+  "run_id": "run-001",
+  "created_at": "2026-09-17T18:24:20.923988",
+  "updated_at": null,
+  "previous_run_id": null,
+  "evidence_reused_from": null,
+  "tools_used": [
+    "WebSearch",
+    "WebFetch"
+  ],
+  "execution_notes": "Researched at the user's explicit request ('do swiggy next' in chat). Not a demo selection."
+}
